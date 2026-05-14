@@ -93,6 +93,22 @@
       align-items: center;
     }
 
+    .hero-actions {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .settings-btn {
+      padding: 10px 12px;
+      border-radius: 0.25rem;
+      font-size: 1.1rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .settings-btn:hover { color: var(--ink); }
+
     .panel {
       padding: 20px 22px;
       margin-bottom: 18px;
@@ -571,7 +587,17 @@
           <h1>C-SPAN Grader 2026</h1>
           <div class="subtitle">SJP · Contemporary World History · Mr. Tinsley</div>
         </div>
-        <div class="hero-chip"><i class="ti ti-movie"></i> Documentary + Presentation Rubrics</div>
+        <div class="hero-actions">
+          <div class="hero-chip"><i class="ti ti-movie"></i> Documentary + Presentation Rubrics</div>
+          <a id="settingsLink"
+             href="https://docs.google.com/spreadsheets/d/1c_qbf_b3WkAdFbJ0eqeB-qxb70QZPk2m9SHkr_DQrtM/edit"
+             target="_blank"
+             rel="noopener"
+             title="Open source spreadsheet"
+             class="btn btn-ghost settings-btn">
+            <i class="ti ti-settings"></i>
+          </a>
+        </div>
       </div>
     </header>
 
@@ -744,7 +770,9 @@
       students: [],
       pendingSavePayload: null,
       gradedGroupNums: new Set(),      // groups with complete numeric score rows
-      allStudents: [],                 // flat list: { name, groupNum, room } for search
+      allStudentsFlat: [],             // raw Students sheet preload
+      groupStudentNames: {},           // { [groupNum]: ["First Last", ...] }
+      allStudents: [],                 // flat list: { name, rawName, groupNum, room } for search
       searchFocusedIndex: -1
     };
 
@@ -836,16 +864,49 @@
       }
     }
 
+    function formatStudentDisplayName(rawName) {
+      const normalized = String(rawName || '').trim().replace(/\s+/g, ' ');
+      if (!normalized) return '';
+
+      const commaIndex = normalized.indexOf(',');
+      if (commaIndex === -1) return normalized;
+
+      const lastName = normalized.slice(0, commaIndex).trim();
+      const firstPart = normalized.slice(commaIndex + 1).trim();
+      const firstNames = firstPart
+        .split(/\s+/)
+        .filter((token) => token && !/^[A-Za-z]\.?$/.test(token))
+        .join(' ');
+
+      return [firstNames, lastName].filter(Boolean).join(' ').trim() || normalized;
+    }
+
+    function buildGroupStudentNames(students) {
+      return students
+        .filter((student) => String(student.skip || '').trim().toLowerCase() !== 'y')
+        .reduce((map, student) => {
+          const groupNum = String(student.groupNum || '').trim();
+          const displayName = formatStudentDisplayName(student.name);
+          if (!groupNum || !displayName) return map;
+          if (!map[groupNum]) map[groupNum] = [];
+          map[groupNum].push(displayName);
+          return map;
+        }, {});
+    }
+
     // ── Load groups + grades summary in parallel ──
     async function loadGroups() {
       setStatus(els.loadStatus, 'Loading groups…');
       try {
-        const [groupsResp, gradesResp] = await Promise.all([
+        const [groupsResp, gradesResp, studentsResp] = await Promise.all([
           postToGas({ action: 'getGroups' }),
-          postToGas({ action: 'getAllGrades' })
+          postToGas({ action: 'getAllGrades' }),
+          postToGas({ action: 'getAllStudents' })
         ]);
 
         state.groups = Array.isArray(groupsResp.groups) ? groupsResp.groups : [];
+        state.allStudentsFlat = Array.isArray(studentsResp.students) ? studentsResp.students : [];
+        state.groupStudentNames = buildGroupStudentNames(state.allStudentsFlat);
 
         const gradeRows = Array.isArray(gradesResp.grades) ? gradesResp.grades : [];
         state.gradedGroupNums = new Set(
@@ -921,9 +982,13 @@
       const options = ['<option value="">Select a group</option>'].concat(
         state.filteredGroups.map((group) => {
           const room = state.roomMap[group.groupNum] || '';
+          const names = (state.groupStudentNames[group.groupNum] || []).join(', ');
           const isGraded = state.gradedGroupNums.has(group.groupNum);
           const indicator = isGraded ? '✓' : '●';
-          const label = `${indicator} Group ${group.groupNum}${room ? ' · ' + room : ''}`;
+          const detail = names || room;
+          const label = detail
+            ? `${indicator} Group ${group.groupNum} — ${detail}`
+            : `${indicator} Group ${group.groupNum}`;
           return `<option value="${escapeHtml(group.groupNum)}">${escapeHtml(label)}</option>`;
         })
       );
@@ -961,32 +1026,34 @@
     }
 
     // ── Build flat student list for search ──
-    // We can't load every group's students upfront (too many requests).
-    // Instead we construct the list from the groups data (groupNum + room) and
-    // any students already loaded. After each group load we augment the list.
     function buildAllStudentsList() {
-      // Reset — we'll populate incrementally as groups are loaded.
-      // On init, seed with groupNum/room only; names come from getStudents calls.
-      // The search will show group-level entries until a group has been loaded.
-      state.allStudents = state.groups.map((g) => ({
-        name: null,
-        groupNum: g.groupNum,
-        room: state.roomMap[g.groupNum] || ''
-      }));
+      state.allStudents = state.allStudentsFlat
+        .map((student) => {
+          const displayName = formatStudentDisplayName(student.name);
+          return {
+            name: displayName,
+            displayName,
+            rawName: student.name,
+            groupNum: String(student.groupNum || '').trim(),
+            room: String(student.room || '').trim() || state.roomMap[String(student.groupNum || '').trim()] || '',
+            isGraded: state.gradedGroupNums.has(String(student.groupNum || '').trim())
+          };
+        })
+        .filter((student) => student.name && student.groupNum);
     }
 
     function augmentStudentList(groupNum, students) {
-      // Remove placeholder for this group
-      state.allStudents = state.allStudents.filter((s) => s.groupNum !== groupNum || s.name !== null);
-      // Add real student entries
+      const studentMap = new Map(
+        students.map((student) => [String(student.name || '').trim(), !!student.grades])
+      );
+
       students.forEach((s) => {
-        if (!state.allStudents.find((e) => e.groupNum === groupNum && e.name === s.name)) {
-          state.allStudents.push({
-            name: s.name,
-            groupNum,
-            room: s.room || state.roomMap[groupNum] || '',
-            isGraded: !!s.grades
-          });
+        const rawName = String(s.name || '').trim();
+        const existing = state.allStudents.find(
+          (entry) => entry.groupNum === groupNum && entry.rawName === rawName
+        );
+        if (existing) {
+          existing.isGraded = studentMap.get(rawName) || false;
         }
       });
     }
@@ -1028,7 +1095,7 @@
           : `<span style="color:var(--warn);font-weight:700;" title="Ungraded">●</span>`;
         return `
           <div class="search-option" data-group="${escapeHtml(s.groupNum)}" data-index="${i}">
-            <span class="search-option-name">${escapeHtml(s.name)}</span>
+            <span class="search-option-name">${escapeHtml(s.displayName || s.name)}</span>
             <span class="search-option-meta">${gradedDot} Group ${escapeHtml(s.groupNum)}${s.room ? ' · ' + escapeHtml(s.room) : ''}</span>
           </div>`;
       }).join('');

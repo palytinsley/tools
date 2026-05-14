@@ -82,6 +82,9 @@ function doPost(e) {
       case 'getGroups':
         result = _handleGetGroups();
         break;
+      case 'getAllStudents':
+        result = _handleGetAllStudents();
+        break;
       case 'getStudents':
         result = _handleGetStudents(payload);
         break;
@@ -145,6 +148,23 @@ function _handleGetStudents(payload) {
       winner: _normalizeFlag(row['Winner']),
       grades: gradesMap[name] || null
     };
+  });
+
+  return { students: students };
+}
+
+function _handleGetAllStudents() {
+  var rows = _getDataRows(_getSheet(STUDENTS_SHEET));
+  var students = rows.map(function(row) {
+    return {
+      name: String(row['Name'] || '').trim(),
+      groupNum: String(row['Group#'] || '').trim(),
+      room: String(row['Room'] || '').trim(),
+      skip: String(row['Skip'] || '').trim().toLowerCase(),
+      winner: String(row['Winner'] || '').trim().toLowerCase()
+    };
+  }).filter(function(student) {
+    return student.name;
   });
 
   return { students: students };
