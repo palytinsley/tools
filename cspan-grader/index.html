@@ -303,7 +303,7 @@
       border: 1px solid var(--line);
     }
 
-    .status-row, .group-meta, .video-button-row, .section-head, .student-title-row, .modal-actions {
+    .status-row, .group-meta, .section-head, .student-title-row, .modal-actions {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -349,19 +349,69 @@
       align-items: center;
     }
 
-    .video-button-row {
-      justify-content: flex-start;
-      margin-bottom: 14px;
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 0;
     }
 
-    .video-frame { padding: 14px; overflow: hidden; }
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      border-radius: 0;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
 
-    .video-frame iframe {
+    .tab-btn:hover { color: var(--ink); }
+
+    .tab-btn.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand);
+    }
+
+    .tab-panel { display: block; }
+    .tab-panel.hidden { display: none !important; }
+
+    .tab-video-wrap {
+      margin-bottom: 24px;
+    }
+
+    .tab-video-wrap iframe {
       width: 100%;
-      height: 520px;
+      height: 420px;
       border: 0;
       border-radius: 14px;
       background: #d7e3e1;
+      display: block;
+    }
+
+    .tab-video-placeholder {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f2f6f5;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      gap: 10px;
     }
 
     .rubric-section + .rubric-section { margin-top: 22px; }
@@ -577,35 +627,43 @@
             <div id="gradedChip" class="chip hidden"></div>
           </div>
         </div>
-        <div class="video-button-row">
-          <button id="presentationVideoBtn" class="btn btn-secondary" type="button"></button>
-          <button id="documentaryVideoBtn" class="btn btn-secondary" type="button"></button>
-        </div>
-        <div id="videoFrame" class="video-frame hidden"></div>
       </section>
 
       <section class="panel rubric-section">
-        <div class="section-head">
-          <div>
-            <h2>Documentary Rubric</h2>
-            <p>Group criteria are entered once. Individual expectations are scored per student.</p>
-          </div>
-          <div class="chip"><i class="ti ti-file-text"></i> 50 points total</div>
+        <div class="tab-bar">
+          <button class="tab-btn active" id="tabBtnDoc" type="button">
+            <i class="ti ti-movie"></i> Documentary
+          </button>
+          <button class="tab-btn" id="tabBtnPres" type="button">
+            <i class="ti ti-microphone-2"></i> Presentation
+          </button>
         </div>
-        <div id="docGroupCriteria" class="group-criteria-grid"></div>
-        <div id="docStudentGrid" class="student-grid"></div>
-      </section>
 
-      <section class="panel rubric-section">
-        <div class="section-head">
-          <div>
-            <h2>Presentation Rubric</h2>
-            <p>Presentation delivery details stay on each student card for quick scoring.</p>
+        <div class="tab-panel" id="tabDoc">
+          <div class="tab-video-wrap" id="docVideoWrap"></div>
+          <div class="section-head">
+            <div>
+              <h2>Documentary Rubric</h2>
+              <p>Group criteria are entered once. Individual expectations are scored per student.</p>
+            </div>
+            <div class="chip"><i class="ti ti-file-text"></i> 50 points total</div>
           </div>
-          <div class="chip"><i class="ti ti-microphone-2"></i> 30 points total</div>
+          <div id="docGroupCriteria" class="group-criteria-grid"></div>
+          <div id="docStudentGrid" class="student-grid"></div>
         </div>
-        <div id="presGroupCriteria" class="group-criteria-grid"></div>
-        <div id="presStudentGrid" class="student-grid"></div>
+
+        <div class="tab-panel hidden" id="tabPres">
+          <div class="tab-video-wrap" id="presVideoWrap"></div>
+          <div class="section-head">
+            <div>
+              <h2>Presentation Rubric</h2>
+              <p>Presentation delivery details stay on each student card for quick scoring.</p>
+            </div>
+            <div class="chip"><i class="ti ti-microphone-2"></i> 30 points total</div>
+          </div>
+          <div id="presGroupCriteria" class="group-criteria-grid"></div>
+          <div id="presStudentGrid" class="student-grid"></div>
+        </div>
       </section>
 
       <section class="panel">
@@ -681,7 +739,6 @@
       filteredGroups: [],
       selectedGroup: null,
       students: [],
-      activeVideoKey: null,
       pendingSavePayload: null,
       gradedGroupNums: new Set(),      // groups with complete numeric score rows
       allStudents: [],                 // flat list: { name, groupNum, room } for search
@@ -699,9 +756,12 @@
       studentCountChip: document.getElementById('studentCountChip'),
       roomChip: document.getElementById('roomChip'),
       gradedChip: document.getElementById('gradedChip'),
-      presentationVideoBtn: document.getElementById('presentationVideoBtn'),
-      documentaryVideoBtn: document.getElementById('documentaryVideoBtn'),
-      videoFrame: document.getElementById('videoFrame'),
+      tabBtnDoc: document.getElementById('tabBtnDoc'),
+      tabBtnPres: document.getElementById('tabBtnPres'),
+      tabDoc: document.getElementById('tabDoc'),
+      tabPres: document.getElementById('tabPres'),
+      docVideoWrap: document.getElementById('docVideoWrap'),
+      presVideoWrap: document.getElementById('presVideoWrap'),
       docGroupCriteria: document.getElementById('docGroupCriteria'),
       presGroupCriteria: document.getElementById('presGroupCriteria'),
       docStudentGrid: document.getElementById('docStudentGrid'),
@@ -748,6 +808,8 @@
       els.cancelConfirmBtn.addEventListener('click', closeConfirmModal);
       els.confirmSaveBtn.addEventListener('click', confirmSave);
       els.groupSelect.addEventListener('change', onGroupSelectChange);
+      els.tabBtnDoc.addEventListener('click', () => switchTab('doc'));
+      els.tabBtnPres.addEventListener('click', () => switchTab('pres'));
 
       // Student search
       els.studentSearch.addEventListener('input', onSearchInput);
@@ -843,7 +905,6 @@
       els.workspace.classList.add('hidden');
       state.selectedGroup = null;
       state.students = [];
-      state.activeVideoKey = null;
       els.groupSelect.classList.remove('ungraded-selected', 'graded-selected');
       setStatus(
         els.loadStatus,
@@ -1041,7 +1102,6 @@
         const response = await postToGas({ action: 'getStudents', groupNum });
         state.selectedGroup = group;
         state.students = Array.isArray(response.students) ? response.students : [];
-        state.activeVideoKey = null;
 
         // Augment student search list with real names
         augmentStudentList(groupNum, state.students);
@@ -1060,6 +1120,8 @@
       const isGraded = state.gradedGroupNums.has(state.selectedGroup.groupNum);
       const ungradedStudents = state.students.filter((s) => !s.grades);
 
+      switchTab('doc');
+
       els.groupHeading.textContent = `Group ${state.selectedGroup.groupNum}`;
       els.groupSubheading.textContent = state.selectedGroup.label || `Group ${state.selectedGroup.groupNum}`;
       els.studentCountChip.textContent = `${state.students.length} students`;
@@ -1077,7 +1139,7 @@
 
       els.workspace.classList.remove('hidden');
 
-      renderVideoButtons();
+      renderVideoEmbeds(state.selectedGroup);
       renderGroupCriteria('doc', els.docGroupCriteria);
       renderGroupCriteria('pres', els.presGroupCriteria);
       renderStudentCards('doc', els.docStudentGrid);
@@ -1089,30 +1151,24 @@
       els.workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function renderVideoButtons() {
-      setupVideoButton(els.presentationVideoBtn, 'pres', 'Presentation Video', state.selectedGroup.presLink);
-      setupVideoButton(els.documentaryVideoBtn, 'doc', 'Documentary Video', state.selectedGroup.docLink);
-      els.videoFrame.classList.add('hidden');
-      els.videoFrame.innerHTML = '';
+    function switchTab(which) {
+      els.tabDoc.classList.toggle('hidden', which !== 'doc');
+      els.tabPres.classList.toggle('hidden', which !== 'pres');
+      els.tabBtnDoc.classList.toggle('active', which === 'doc');
+      els.tabBtnPres.classList.toggle('active', which === 'pres');
     }
 
-    function setupVideoButton(button, videoKey, label, url) {
-      const embedUrl = toEmbedUrl(url);
-      button.innerHTML = `<i class="ti ti-player-play"></i>${label}`;
-      button.disabled = !embedUrl;
-      button.title = embedUrl ? '' : 'No link submitted';
-      button.onclick = () => {
-        if (!embedUrl) return;
-        if (state.activeVideoKey === videoKey) {
-          state.activeVideoKey = null;
-          els.videoFrame.classList.add('hidden');
-          els.videoFrame.innerHTML = '';
-          return;
-        }
-        state.activeVideoKey = videoKey;
-        els.videoFrame.innerHTML = `<iframe src="${embedUrl}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen title="${label}"></iframe>`;
-        els.videoFrame.classList.remove('hidden');
-      };
+    function renderVideoEmbeds(group) {
+      const docUrl = toEmbedUrl(group.documentaryUrl || group.docUrl || group.docLink || '');
+      const presUrl = toEmbedUrl(group.presentationUrl || group.presUrl || group.presLink || '');
+
+      els.docVideoWrap.innerHTML = docUrl
+        ? `<iframe src="${docUrl}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen title="Documentary video"></iframe>`
+        : `<div class="tab-video-placeholder"><i class="ti ti-video-off"></i> No documentary video on file for this group.</div>`;
+
+      els.presVideoWrap.innerHTML = presUrl
+        ? `<iframe src="${presUrl}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen title="Presentation video"></iframe>`
+        : `<div class="tab-video-placeholder"><i class="ti ti-video-off"></i> No presentation video on file for this group.</div>`;
     }
 
     function renderGroupCriteria(section, mount) {
