@@ -882,16 +882,14 @@
     }
 
     function buildGroupStudentNames(students) {
-      return students
-        .filter((student) => String(student.skip || '').trim().toLowerCase() !== 'y')
-        .reduce((map, student) => {
-          const groupNum = String(student.groupNum || '').trim();
-          const displayName = formatStudentDisplayName(student.name);
-          if (!groupNum || !displayName) return map;
-          if (!map[groupNum]) map[groupNum] = [];
-          map[groupNum].push(displayName);
-          return map;
-        }, {});
+      return students.reduce((map, student) => {
+        const groupNum = String(student.groupNum || '').trim();
+        const displayName = formatStudentDisplayName(student.name);
+        if (!groupNum || !displayName) return map;
+        if (!map[groupNum]) map[groupNum] = [];
+        map[groupNum].push(displayName);
+        return map;
+      }, {});
     }
 
     // ── Load groups + grades summary in parallel ──
