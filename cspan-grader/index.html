@@ -34,7 +34,6 @@
       color: var(--ink);
       background: #f7f9fb;
       min-width: 1240px;
-      padding-bottom: 48px;
     }
 
     .page {
@@ -590,37 +589,56 @@
       background: #eceef0;
     }
 
-    .score-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--brand-deep);
-      color: #fff;
-      font-size: 0.82rem;
-      font-family: 'Inter', sans-serif;
-      padding: 8px 20px;
+    .score-summary-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px 24px;
-      align-items: center;
-      z-index: 1000;
-      border-top: 2px solid var(--accent);
-      min-height: 38px;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
     }
 
-    .score-bar.hidden { display: none; }
-
-    .score-bar-student {
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-      white-space: nowrap;
+    .score-summary-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      padding: 8px 14px;
+      min-width: 130px;
+      flex: 1 1 130px;
     }
 
-    .score-bar-name { font-weight: 700; }
-    .score-bar-sep { opacity: 0.4; }
-    .score-bar-total { color: #7dd3fc; font-weight: 700; }
+    .score-summary-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .score-summary-scores {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .score-summary-item {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .score-summary-item strong {
+      font-size: 1rem;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .score-summary-total {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--brand);
+    }
 
     .schoology-table {
       width: 100%;
@@ -743,6 +761,7 @@
             <div id="gradedChip" class="chip hidden"></div>
           </div>
         </div>
+        <div id="scoreSummaryRow" class="score-summary-row hidden"></div>
       </section>
 
       <section class="panel rubric-section">
@@ -986,11 +1005,6 @@
       ]
     };
 
-    const SCORE_BAR_SECTIONS = {
-      doc: ['ideas', 'quality', 'narration', 'videoImages', 'studentExpectations'],
-      pres: ['dayOfPrep', 'preparation', 'content', 'vocalSkills', 'physicalTechnique']
-    };
-
     const SCHOOLOGY_COMMENT_ORDER = [
       { key: 'ideas', label: 'Ideas', scope: 'group' },
       { key: 'quality', label: 'Quality', scope: 'group' },
@@ -1025,7 +1039,7 @@
       settingsBtn: document.getElementById('settingsBtn'),
       loadStatus: document.getElementById('loadStatus'),
       workspace: document.getElementById('workspace'),
-      scoreBar: document.getElementById('scoreBar'),
+      scoreSummaryRow: document.getElementById('scoreSummaryRow'),
       groupHeading: document.getElementById('groupHeading'),
       groupSubheading: document.getElementById('groupSubheading'),
       studentCountChip: document.getElementById('studentCountChip'),
@@ -1476,7 +1490,7 @@
       renderStudentCards('doc', els.docStudentGrid);
       renderStudentCards('pres', els.presStudentGrid);
       highlightEmptyScores();
-      updateScoreBar();
+      updateScoreSummary();
       if (els.schoologyToggle.checked) renderSchoologyTable();
       setStatus(els.saveStatus, '');
 
@@ -1596,7 +1610,7 @@
     }
 
     function handleWorkspaceInput() {
-      updateScoreBar();
+      updateScoreSummary();
       if (els.schoologyToggle.checked) renderSchoologyTable();
     }
 
@@ -1678,7 +1692,7 @@
         renderStudentCards('doc', els.docStudentGrid);
         renderStudentCards('pres', els.presStudentGrid);
         highlightEmptyScores();
-        updateScoreBar();
+        updateScoreSummary();
         if (els.schoologyToggle.checked) renderSchoologyTable();
         // Update workspace graded chip
         els.gradedChip.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success)"></i><span style="color:var(--success);font-weight:700;">Graded</span>`;
@@ -1741,8 +1755,7 @@
       els.workspace.classList.add('hidden');
       state.selectedGroup = null;
       state.students = [];
-      els.scoreBar.classList.add('hidden');
-      els.scoreBar.innerHTML = '';
+      updateScoreSummary();
       if (els.schoologyToggle.checked) renderSchoologyTable();
     }
 
@@ -1765,61 +1778,74 @@
       return getFieldValue(`[data-scope="${scope}"]${studentSelector}[data-key="${key}"][data-kind="comment"]`);
     }
 
-    function sumKeys(values, keys) {
-      if (keys.some((key) => values[key] === null)) return null;
-      return keys.reduce((sum, key) => sum + values[key], 0);
-    }
-
-    function formatScoreBarValue(value, max) {
-      return value === null ? `—/${max}` : `${value}/${max}`;
-    }
-
-    function getStudentLastName(name) {
-      const normalized = String(name || '').trim();
-      if (!normalized) return 'Student';
-      if (normalized.includes(',')) return normalized.split(',')[0].trim() || normalized;
-      const parts = normalized.split(/\s+/);
-      return parts[parts.length - 1] || normalized;
-    }
-
-    function updateScoreBar() {
-      if (!state.selectedGroup || !state.students.length) {
-        els.scoreBar.classList.add('hidden');
-        els.scoreBar.innerHTML = '';
+    function updateScoreSummary() {
+      const row = els.scoreSummaryRow;
+      if (!row) return;
+      if (!state.students || !state.students.length) {
+        row.classList.add('hidden');
+        row.innerHTML = '';
         return;
       }
 
-      const summary = state.students.map((student, studentIndex) => {
-        const values = {};
-        for (const criterion of [...GROUP_CRITERIA.doc, ...GROUP_CRITERIA.pres]) {
-          values[criterion.key] = readScoreValue('group', criterion.key, criterion.max);
+      const groupKeys = {
+        doc: ['ideas', 'quality', 'narration', 'videoImages'],
+        pres: ['dayOfPrep', 'preparation', 'content']
+      };
+      const studentKeys = {
+        doc: ['studentExpectations'],
+        pres: ['vocalSkills', 'physicalTechnique']
+      };
+
+      function readGroupScore(key) {
+        const el = document.querySelector(`[data-scope="group"][data-key="${key}"][data-kind="score"]`);
+        const v = el ? Number(el.value) : NaN;
+        return isNaN(v) ? null : v;
+      }
+
+      const groupDocScore = groupKeys.doc.reduce((sum, key) => {
+        const value = readGroupScore(key);
+        return (sum === null || value === null) ? null : sum + value;
+      }, 0);
+      const groupPresScore = groupKeys.pres.reduce((sum, key) => {
+        const value = readGroupScore(key);
+        return (sum === null || value === null) ? null : sum + value;
+      }, 0);
+
+      const cards = state.students.map((student, i) => {
+        function readStudentScore(key) {
+          const el = document.querySelector(`[data-scope="student"][data-student-index="${i}"][data-key="${key}"][data-kind="score"]`);
+          const v = el ? Number(el.value) : NaN;
+          return isNaN(v) ? null : v;
         }
-        for (const criterion of [...INDIVIDUAL_CRITERIA.doc, ...INDIVIDUAL_CRITERIA.pres]) {
-          values[criterion.key] = readScoreValue('student', criterion.key, criterion.max, studentIndex);
-        }
 
-        const docSub = sumKeys(values, SCORE_BAR_SECTIONS.doc);
-        const presSub = sumKeys(values, SCORE_BAR_SECTIONS.pres);
-        const total = docSub === null || presSub === null ? null : docSub + presSub;
+        const indDoc = studentKeys.doc.reduce((sum, key) => {
+          const value = readStudentScore(key);
+          return (sum === null || value === null) ? null : sum + value;
+        }, 0);
+        const indPres = studentKeys.pres.reduce((sum, key) => {
+          const value = readStudentScore(key);
+          return (sum === null || value === null) ? null : sum + value;
+        }, 0);
 
-        return `
-          <span class="score-bar-student">
-            <span class="score-bar-name">${escapeHtml(getStudentLastName(student.name))}</span>
-            <span class="score-bar-sep">·</span>
-            <span>Doc ${formatScoreBarValue(docSub, 50)}</span>
-            <span class="score-bar-sep">·</span>
-            <span>Pres ${formatScoreBarValue(presSub, 30)}</span>
-            <span class="score-bar-sep">·</span>
-            <span class="score-bar-total">${formatScoreBarValue(total, 80)}</span>
-          </span>
-        `;
-      }).join('');
+        const doc = (groupDocScore !== null && indDoc !== null) ? groupDocScore + indDoc : null;
+        const pres = (groupPresScore !== null && indPres !== null) ? groupPresScore + indPres : null;
+        const total = (doc !== null && pres !== null) ? doc + pres : null;
 
-      els.scoreBar.innerHTML = `
-        <span class="chip">Group ${escapeHtml(state.selectedGroup.groupNum)} ·</span>
-        ${summary}
-      `;
-      els.scoreBar.classList.remove('hidden');
+        const lastName = student.name ? student.name.split(',')[0].trim() : student.name;
+        const fmt = (value, max) => value === null ? `—/${max}` : `${value}/${max}`;
+
+        return `<div class="score-summary-card">
+          <div class="score-summary-name">${escapeHtml(lastName)}</div>
+          <div class="score-summary-scores">
+            <span class="score-summary-item">Doc <strong>${fmt(doc, 50)}</strong></span>
+            <span class="score-summary-item">Pres <strong>${fmt(pres, 30)}</strong></span>
+            <span class="score-summary-total">${total !== null ? total : '—'}<span style="font-size:0.75rem;font-weight:500;color:var(--muted)">/80</span></span>
+          </div>
+        </div>`;
+      });
+
+      row.innerHTML = cards.join('');
+      row.classList.remove('hidden');
     }
 
     function buildSchoologyRows() {
@@ -1972,6 +1998,5 @@
         .replace(/'/g, '&#39;');
     }
   </script>
-  <div id="scoreBar" class="score-bar hidden"></div>
 </body>
 </html>
