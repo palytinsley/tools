@@ -881,9 +881,23 @@
         const displayName = toDisplayName(student.name);
         if (!groupNum || !displayName) return map;
         if (!map[groupNum]) map[groupNum] = [];
-        map[groupNum].push(displayName);
+        if (!map[groupNum].includes(displayName)) {
+          map[groupNum].push(displayName);
+        }
         return map;
       }, {});
+    }
+
+    function getGroupStudentNames(groupNum) {
+      const normalizedGroupNum = String(groupNum || '').trim();
+      const preloadNames = state.groupStudentNames && state.groupStudentNames[normalizedGroupNum];
+      if (preloadNames && preloadNames.length) return preloadNames;
+
+      const derivedNames = state.allStudents
+        .filter((student) => student.groupNum === normalizedGroupNum && student.name)
+        .map((student) => student.name);
+
+      return [...new Set(derivedNames)];
     }
 
     // ── Load groups + grades summary in parallel ──
@@ -976,10 +990,10 @@
         state.filteredGroups.map((group) => {
           const isGraded = state.gradedGroupNums.has(group.groupNum);
           const indicator = isGraded ? '✓' : '●';
-          const names = state.groupStudentNames && state.groupStudentNames[group.groupNum];
-          const suffix = (names && names.length)
+          const names = getGroupStudentNames(group.groupNum);
+          const suffix = names.length
             ? names.join(', ')
-            : (state.roomMap[group.groupNum] || 'Room ABSENT');
+            : (String(group.label || '').trim() || 'Students unavailable');
           const label = `${indicator} Group ${group.groupNum} — ${suffix}`;
           return `<option value="${escapeHtml(group.groupNum)}">${escapeHtml(label)}</option>`;
         })
