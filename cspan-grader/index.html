@@ -864,27 +864,21 @@
       }
     }
 
-    function formatStudentDisplayName(rawName) {
-      const normalized = String(rawName || '').trim().replace(/\s+/g, ' ');
-      if (!normalized) return '';
-
-      const commaIndex = normalized.indexOf(',');
-      if (commaIndex === -1) return normalized;
-
-      const lastName = normalized.slice(0, commaIndex).trim();
-      const firstPart = normalized.slice(commaIndex + 1).trim();
-      const firstNames = firstPart
-        .split(/\s+/)
-        .filter((token) => token && !/^[A-Za-z]\.?$/.test(token))
-        .join(' ');
-
-      return [firstNames, lastName].filter(Boolean).join(' ').trim() || normalized;
+    function toDisplayName(raw) {
+      const str = String(raw || '').trim().replace(/\s+/g, ' ');
+      const commaIdx = str.indexOf(',');
+      if (commaIdx === -1) return str;
+      const lastName = str.slice(0, commaIdx).trim();
+      const rest = str.slice(commaIdx + 1).trim();
+      // Remove trailing middle initial to keep dropdown labels concise and consistent.
+      const firstName = rest.replace(/\s+[A-Z]\.?$/, '').trim();
+      return `${firstName} ${lastName}`.trim();
     }
 
     function buildGroupStudentNames(students) {
       return students.reduce((map, student) => {
         const groupNum = String(student.groupNum || '').trim();
-        const displayName = formatStudentDisplayName(student.name);
+        const displayName = toDisplayName(student.name);
         if (!groupNum || !displayName) return map;
         if (!map[groupNum]) map[groupNum] = [];
         map[groupNum].push(displayName);
@@ -903,8 +897,9 @@
         ]);
 
         state.groups = Array.isArray(groupsResp.groups) ? groupsResp.groups : [];
-        state.allStudentsFlat = Array.isArray(studentsResp.students) ? studentsResp.students : [];
-        state.groupStudentNames = buildGroupStudentNames(state.allStudentsFlat);
+        const allStudentsRaw = Array.isArray(studentsResp.students) ? studentsResp.students : [];
+        state.allStudentsFlat = allStudentsRaw;
+        state.groupStudentNames = buildGroupStudentNames(allStudentsRaw);
 
         const gradeRows = Array.isArray(gradesResp.grades) ? gradesResp.grades : [];
         state.gradedGroupNums = new Set(
@@ -915,9 +910,9 @@
 
         buildRoomMap();
         populateRoomFilter();
+        state.allStudents = buildAllStudentsList(allStudentsRaw);
         state.filteredGroups = [...state.groups];
         populateGroupSelect();
-        buildAllStudentsList();
         enableSearch();
         renderNeedsGradingBar();
 
@@ -979,14 +974,13 @@
     function populateGroupSelect() {
       const options = ['<option value="">Select a group</option>'].concat(
         state.filteredGroups.map((group) => {
-          const room = state.roomMap[group.groupNum] || '';
-          const names = (state.groupStudentNames[group.groupNum] || []).join(', ');
           const isGraded = state.gradedGroupNums.has(group.groupNum);
           const indicator = isGraded ? '✓' : '●';
-          const detail = names || room;
-          const label = detail
-            ? `${indicator} Group ${group.groupNum} — ${detail}`
-            : `${indicator} Group ${group.groupNum}`;
+          const names = state.groupStudentNames && state.groupStudentNames[group.groupNum];
+          const suffix = (names && names.length)
+            ? names.join(', ')
+            : (state.roomMap[group.groupNum] || 'Room ABSENT');
+          const label = `${indicator} Group ${group.groupNum} — ${suffix}`;
           return `<option value="${escapeHtml(group.groupNum)}">${escapeHtml(label)}</option>`;
         })
       );
@@ -1024,17 +1018,18 @@
     }
 
     // ── Build flat student list for search ──
-    function buildAllStudentsList() {
-      state.allStudents = state.allStudentsFlat
+    function buildAllStudentsList(students = state.allStudentsFlat) {
+      return students
         .map((student) => {
-          const displayName = formatStudentDisplayName(student.name);
+          const groupNum = String(student.groupNum || '').trim();
+          const displayName = toDisplayName(student.name);
           return {
             name: displayName,
             displayName,
             rawName: student.name,
-            groupNum: String(student.groupNum || '').trim(),
-            room: String(student.room || '').trim() || state.roomMap[String(student.groupNum || '').trim()] || '',
-            isGraded: state.gradedGroupNums.has(String(student.groupNum || '').trim())
+            groupNum,
+            room: String(student.room || '').trim() || state.roomMap[groupNum] || '',
+            isGraded: state.gradedGroupNums.has(groupNum)
           };
         })
         .filter((student) => student.name && student.groupNum);
