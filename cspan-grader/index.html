@@ -823,7 +823,7 @@
   </div>
 
   <div id="settingsOverlay" class="overlay hidden">
-    <div class="modal-card" style="width:min(720px,100%);">
+    <div class="modal-card" style="width:min(720px,100%); max-height:calc(100vh - 80px); display:flex; flex-direction:column; overflow:hidden;">
       <h3><i class="ti ti-settings"></i> Settings</h3>
 
       <div class="settings-section">
@@ -833,7 +833,7 @@
         </label>
       </div>
 
-      <div id="schoologyPanel" class="hidden" style="margin-top:16px;">
+      <div id="schoologyPanel" class="hidden" style="margin-top:16px; overflow-y:auto; flex:1 1 auto;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <span style="font-size:0.85rem;color:var(--muted);">
             Sorted A–Z · Last, First · comments only shown if non-empty
@@ -1971,7 +1971,7 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
     }
-  </script>
   <div id="scoreBar" class="score-bar hidden"></div>
+  </script>
 </body>
 </html>
