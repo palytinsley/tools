@@ -148,6 +148,12 @@
       box-shadow: 0 0 0 4px rgba(31, 122, 110, 0.12);
     }
 
+    input.score-empty {
+      border-color: var(--warn);
+      background: rgba(180, 84, 42, 0.05);
+      box-shadow: 0 0 0 3px rgba(180, 84, 42, 0.12);
+    }
+
     textarea {
       min-height: 72px;
       resize: vertical;
@@ -677,7 +683,7 @@
       students: [],
       activeVideoKey: null,
       pendingSavePayload: null,
-      gradedGroupNums: new Set(),      // groups with at least one grade row
+      gradedGroupNums: new Set(),      // groups with complete numeric score rows
       allStudents: [],                 // flat list: { name, groupNum, room } for search
       searchFocusedIndex: -1
     };
@@ -714,6 +720,19 @@
       studentSearch: document.getElementById('studentSearch'),
       searchDropdown: document.getElementById('searchDropdown')
     };
+
+    const GRADE_SCORE_HEADERS = [
+      'Ideas Score',
+      'Quality Score',
+      'Narration Score',
+      'Video & Images Score',
+      'Student Expectations Score',
+      'Day-of Prep Score',
+      'Preparation Score',
+      'Content Score',
+      'Vocal Skills Score',
+      'Physical Technique Score'
+    ];
 
     init();
 
@@ -763,12 +782,11 @@
 
         state.groups = Array.isArray(groupsResp.groups) ? groupsResp.groups : [];
 
-        // Build graded set from existing grade rows
         const gradeRows = Array.isArray(gradesResp.grades) ? gradesResp.grades : [];
         state.gradedGroupNums = new Set(
-          gradeRows
-            .map((row) => String(row['Group#'] || '').trim())
-            .filter(Boolean)
+          state.groups
+            .map((group) => String(group.groupNum || '').trim())
+            .filter((groupNum) => isGroupFullyGraded(groupNum, gradeRows))
         );
 
         buildRoomMap();
@@ -795,6 +813,19 @@
         map[group.groupNum] = String(group.room || '').trim();
         return map;
       }, {});
+    }
+
+    function isGroupFullyGraded(groupNum, gradeRows) {
+      const rowsForGroup = gradeRows.filter((row) => String(row['Group#'] || '').trim() === String(groupNum).trim());
+      if (!rowsForGroup.length) return false;
+
+      return rowsForGroup.every((row) => GRADE_SCORE_HEADERS.every((header) => {
+        const rawValue = row[header];
+        if (rawValue === null || rawValue === undefined) return false;
+        const value = String(rawValue).trim();
+        if (value === '') return false;
+        return !Number.isNaN(Number(value));
+      }));
     }
 
     function populateRoomFilter() {
@@ -1051,6 +1082,7 @@
       renderGroupCriteria('pres', els.presGroupCriteria);
       renderStudentCards('doc', els.docStudentGrid);
       renderStudentCards('pres', els.presStudentGrid);
+      highlightEmptyScores();
       setStatus(els.saveStatus, '');
 
       // Scroll workspace into view
@@ -1156,6 +1188,18 @@
       }).join('');
     }
 
+    function highlightEmptyScores() {
+      const scoreInputs = els.workspace.querySelectorAll('input[data-kind="score"]');
+      scoreInputs.forEach((input) => {
+        const syncHighlight = () => {
+          input.classList.toggle('score-empty', input.value.trim() === '');
+        };
+
+        syncHighlight();
+        input.oninput = syncHighlight;
+      });
+    }
+
     function getGroupGradeSeed() {
       const firstWithGrades = state.students.find((s) => s.grades);
       return firstWithGrades ? firstWithGrades.grades : {};
@@ -1219,11 +1263,21 @@
 
         // Mark this group as graded
         state.gradedGroupNums.add(state.pendingSavePayload.groupNum);
-        // Update student objects so badges refresh
-        state.students.forEach((s) => { s.grades = s.grades || {}; });
+        // Mirror the saved values into local state so re-renders keep the entered scores.
+        const savedGroupScores = state.pendingSavePayload.groupScores;
+        state.students.forEach((student, index) => {
+          const savedStudentScores = state.pendingSavePayload.studentScores[index];
+          student.grades = {
+            ...savedGroupScores,
+            studentExpectations: savedStudentScores.studentExpectations,
+            vocalSkills: savedStudentScores.vocalSkills,
+            physicalTechnique: savedStudentScores.physicalTechnique
+          };
+        });
         // Re-render student cards to remove "Needs Grading" badges
         renderStudentCards('doc', els.docStudentGrid);
         renderStudentCards('pres', els.presStudentGrid);
+        highlightEmptyScores();
         // Update workspace graded chip
         els.gradedChip.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success)"></i><span style="color:var(--success);font-weight:700;">Graded</span>`;
         // Update group select options
