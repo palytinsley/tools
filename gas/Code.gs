@@ -68,6 +68,10 @@ function doGet() {
   return _jsonResponse({ status: 'ok' });
 }
 
+function doOptions() {
+  return _jsonResponse({ status: 'ok' });
+}
+
 function doPost(e) {
   try {
     var payload = _parseRequestBody(e);
@@ -102,10 +106,13 @@ function doPost(e) {
 
 function _handleGetGroups() {
   var rows = _getDataRows(_getSheet(GROUPS_SHEET));
+  var roomByGroup = _getRoomByGroupMap();
   var groups = rows.map(function(row) {
+    var groupNum = String(row['Group#'] || '').trim();
     return {
-      groupNum: String(row['Group#'] || '').trim(),
+      groupNum: groupNum,
       label: String(row['Label'] || '').trim(),
+      room: roomByGroup[groupNum] || '',
       presLink: String(row['Pres Link'] || '').trim(),
       docLink: String(row['Doc Link'] || '').trim()
     };
@@ -141,6 +148,21 @@ function _handleGetStudents(payload) {
   });
 
   return { students: students };
+}
+
+function _getRoomByGroupMap() {
+  var roomByGroup = {};
+
+  _getDataRows(_getSheet(STUDENTS_SHEET)).forEach(function(row) {
+    var groupNum = String(row['Group#'] || '').trim();
+    var room = String(row['Room'] || '').trim();
+
+    if (groupNum && room && !roomByGroup[groupNum]) {
+      roomByGroup[groupNum] = room;
+    }
+  });
+
+  return roomByGroup;
 }
 
 function _handleSaveGrades(payload) {
@@ -375,9 +397,23 @@ function _parseRequestBody(e) {
 
 function _jsonResponse(result) {
   // TODO: Add one-time migration helper in migrate.gs for importing legacy Grades rows from CSPAN_ver_14__2_.xlsx.
-  return ContentService
+  var output = ContentService
     .createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
+
+  return _withCorsHeaders(output);
+}
+
+function _withCorsHeaders(output) {
+  // ContentService normally does not expose header setters in Apps Script web apps,
+  // so the frontend still uses a simple text/plain POST to avoid preflight.
+  if (output && typeof output.setHeader === 'function') {
+    output.setHeader('Access-Control-Allow-Origin', '*');
+    output.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    output.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
+
+  return output;
 }
 
 function _toNumber(value) {

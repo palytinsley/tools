@@ -681,7 +681,10 @@
 
     async function init() {
       bindEvents();
+      const loadGroupsStart = performance.now();
+      console.log('[CSPAN Grader] Starting loadGroups');
       await loadGroups();
+      console.log('[CSPAN Grader] Finished loadGroups in ' + Math.round(performance.now() - loadGroupsStart) + 'ms');
     }
 
     function bindEvents() {
@@ -697,7 +700,7 @@
       try {
         const response = await postToGas({ action: 'getGroups' });
         state.groups = Array.isArray(response.groups) ? response.groups : [];
-        await buildRoomMap();
+        buildRoomMap();
         populateRoomFilter();
         state.filteredGroups = [...state.groups];
         populateGroupSelect();
@@ -707,19 +710,11 @@
       }
     }
 
-    async function buildRoomMap() {
-      const roomMap = {};
-      for (const group of state.groups) {
-        try {
-          const response = await postToGas({ action: 'getStudents', groupNum: group.groupNum });
-          const students = Array.isArray(response.students) ? response.students : [];
-          const room = students.map((student) => student.room).find(Boolean) || '';
-          roomMap[group.groupNum] = room;
-        } catch (error) {
-          roomMap[group.groupNum] = '';
-        }
-      }
-      state.roomMap = roomMap;
+    function buildRoomMap() {
+      state.roomMap = state.groups.reduce((roomMap, group) => {
+        roomMap[group.groupNum] = String(group.room || '').trim();
+        return roomMap;
+      }, {});
     }
 
     function populateRoomFilter() {
