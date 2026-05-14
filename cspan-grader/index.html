@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-SPAN Grader 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg: #eef4f3;
+      --panel: #fbfcf9;
+      --panel-strong: #ffffff;
+      --ink: #1d3130;
+      --muted: #59706f;
+      --line: #cbd8d6;
+      --brand: #1f7a6e;
+      --brand-deep: #0e5148;
+      --accent: #dca73f;
+      --warn: #b4542a;
+      --danger: #9e3434;
+      --success: #20775d;
+      --shadow: 0 20px 50px rgba(20, 58, 55, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Open Sans', sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(31, 122, 110, 0.16), transparent 28%),
+        linear-gradient(180deg, #f6fbfa 0%, var(--bg) 48%, #e9f0ef 100%);
+      min-width: 1240px;
+    }
+
+    .page {
+      width: min(1500px, calc(100vw - 48px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .hero,
+    .panel,
+    .student-card,
+    .video-frame,
+    .modal-card {
+      background: var(--panel-strong);
+      border: 1px solid rgba(203, 216, 214, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px 32px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(220, 167, 63, 0.24), rgba(220, 167, 63, 0));
+      pointer-events: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    .criterion-name {
+      font-family: 'Arvo', serif;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2.2rem;
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.98rem;
+      font-weight: 600;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .hero-chip {
+      padding: 10px 14px;
+      background: #f2f7f6;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--brand-deep);
+      font-size: 0.92rem;
+      white-space: nowrap;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .panel {
+      padding: 20px 22px;
+      margin-bottom: 18px;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    select,
+    input[type="number"],
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    select,
+    input[type="number"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff;
+      color: var(--ink);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    select:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(31, 122, 110, 0.12);
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(14, 81, 72, 0.18);
+    }
+
+    .btn-secondary {
+      background: #eff5f4;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .status-row,
+    .group-meta,
+    .video-button-row,
+    .section-head,
+    .student-title-row,
+    .modal-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .status-row {
+      margin-top: 12px;
+      min-height: 24px;
+    }
+
+    .status-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .status-text.error {
+      color: var(--danger);
+    }
+
+    .status-text.success {
+      color: var(--success);
+    }
+
+    .status-text.warning {
+      color: var(--warn);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .group-meta {
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      background: #f4f8f8;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      color: var(--brand-deep);
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .video-button-row {
+      justify-content: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .video-frame {
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .video-frame iframe {
+      width: 100%;
+      height: 520px;
+      border: 0;
+      border-radius: 14px;
+      background: #d7e3e1;
+    }
+
+    .rubric-section + .rubric-section {
+      margin-top: 22px;
+    }
+
+    .section-head {
+      margin-bottom: 14px;
+      align-items: flex-end;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .group-criteria-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .criterion-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f9fbfb;
+      padding: 16px;
+    }
+
+    .criterion-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: baseline;
+    }
+
+    .criterion-name {
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .criterion-meta {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .criterion-inputs {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .student-card {
+      padding: 18px;
+      position: relative;
+      border-top: 5px solid var(--brand);
+    }
+
+    .student-card.winner {
+      border-top-color: var(--accent);
+      background: linear-gradient(180deg, rgba(220, 167, 63, 0.12), rgba(255, 255, 255, 0.96) 22%);
+    }
+
+    .student-card.skip {
+      opacity: 0.68;
+    }
+
+    .student-name {
+      margin: 0;
+      font-size: 1.12rem;
+    }
+
+    .student-meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .badge.skip {
+      background: rgba(158, 52, 52, 0.12);
+      color: var(--danger);
+    }
+
+    .badge.winner {
+      background: rgba(220, 167, 63, 0.18);
+      color: #80590a;
+    }
+
+    .criterion-stack {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .save-bar {
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding-top: 10px;
+    }
+
+    .save-copy {
+      color: var(--muted);
+      max-width: 820px;
+      line-height: 1.45;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(19, 41, 39, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 20;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      padding: 24px;
+    }
+
+    .modal-card h3 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+    }
+
+    .modal-card p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .spin {
+      display: inline-block;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .modal-summary {
+      background: #f5f8f8;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .modal-summary div {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>C-SPAN Grader 2026</h1>
+          <div class="subtitle">SJP · Contemporary World History · Mr. Tinsley</div>
+        </div>
+        <div class="hero-chip"><i class="ti ti-movie"></i> Documentary + Presentation Rubrics</div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="control-grid">
+        <div class="field">
+          <label for="groupSelect">Group</label>
+          <select id="groupSelect">
+            <option value="">Select a group</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="roomFilter">Room Filter</label>
+          <select id="roomFilter">
+            <option value="ALL">All Rooms</option>
+          </select>
+        </div>
+        <button id="loadGroupBtn" class="btn btn-primary" type="button">
+          <i class="ti ti-folder-open"></i>
+          Load Group
+        </button>
+      </div>
+      <div class="status-row">
+        <div id="loadStatus" class="status-text"></div>
+      </div>
+    </section>
+
+    <section id="workspace" class="hidden">
+      <section class="panel">
+        <div class="group-meta">
+          <div>
+            <h2 id="groupHeading">Group</h2>
+            <div id="groupSubheading" class="subtitle"></div>
+          </div>
+          <div class="meta-chips">
+            <div class="chip"><i class="ti ti-users-group"></i><span id="studentCountChip">0 students</span></div>
+            <div class="chip"><i class="ti ti-home"></i><span id="roomChip">Room</span></div>
+          </div>
+        </div>
+        <div class="video-button-row">
+          <button id="presentationVideoBtn" class="btn btn-secondary" type="button"></button>
+          <button id="documentaryVideoBtn" class="btn btn-secondary" type="button"></button>
+        </div>
+        <div id="videoFrame" class="video-frame hidden"></div>
+      </section>
+
+      <section class="panel rubric-section">
+        <div class="section-head">
+          <div>
+            <h2>Documentary Rubric</h2>
+            <p>Group criteria are entered once. Individual expectations are scored per student.</p>
+          </div>
+          <div class="chip"><i class="ti ti-file-text"></i> 50 points total</div>
+        </div>
+        <div id="docGroupCriteria" class="group-criteria-grid"></div>
+        <div id="docStudentGrid" class="student-grid"></div>
+      </section>
+
+      <section class="panel rubric-section">
+        <div class="section-head">
+          <div>
+            <h2>Presentation Rubric</h2>
+            <p>Presentation delivery details stay on each student card for quick scoring.</p>
+          </div>
+          <div class="chip"><i class="ti ti-microphone-2"></i> 30 points total</div>
+        </div>
+        <div id="presGroupCriteria" class="group-criteria-grid"></div>
+        <div id="presStudentGrid" class="student-grid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="save-bar">
+          <div class="save-copy">
+            Save writes one Grades row per student through the GAS backend. Group scores apply to every student in the selected group. Empty comments are allowed, but every score is required.
+          </div>
+          <button id="saveGroupBtn" class="btn btn-primary" type="button">
+            <i class="ti ti-device-floppy"></i>
+            Save Group
+          </button>
+        </div>
+        <div class="status-row">
+          <div id="saveStatus" class="status-text"></div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <div id="confirmOverlay" class="overlay hidden">
+    <div class="modal-card">
+      <h3>Confirm Save</h3>
+      <p id="confirmCopy">Review this save summary before sending grades to the Google Apps Script backend.</p>
+      <div class="modal-summary">
+        <div><span>Group</span><strong id="confirmGroup"></strong></div>
+        <div><span>Students</span><strong id="confirmStudents"></strong></div>
+        <div><span>Documentary subtotal range</span><strong id="confirmDocRange"></strong></div>
+        <div><span>Presentation subtotal range</span><strong id="confirmPresRange"></strong></div>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelConfirmBtn" class="btn btn-ghost" type="button">
+          <i class="ti ti-x"></i>
+          Cancel
+        </button>
+        <button id="confirmSaveBtn" class="btn btn-primary" type="button">
+          <i class="ti ti-check"></i>
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = 'YOUR_GAS_DEPLOYMENT_URL';
+    // Replace with deployed GAS web app URL after deploying Code.gs
+
+    const GROUP_CRITERIA = {
+      doc: [
+        { key: 'ideas', label: 'Ideas', max: 10 },
+        { key: 'quality', label: 'Quality', max: 10 },
+        { key: 'narration', label: 'Narration', max: 10 },
+        { key: 'videoImages', label: 'Video & Images', max: 10 }
+      ],
+      pres: [
+        { key: 'dayOfPrep', label: 'Day-of Prep & Execution', max: 10 },
+        { key: 'preparation', label: 'Preparation', max: 5 },
+        { key: 'content', label: 'Content', max: 5 }
+      ]
+    };
+
+    const INDIVIDUAL_CRITERIA = {
+      doc: [
+        { key: 'studentExpectations', label: 'Student Expectations', max: 10 }
+      ],
+      pres: [
+        { key: 'vocalSkills', label: 'Vocal Skills', max: 5 },
+        { key: 'physicalTechnique', label: 'Physical Technique', max: 5 }
+      ]
+    };
+
+    const state = {
+      groups: [],
+      roomMap: {},
+      filteredGroups: [],
+      selectedGroup: null,
+      students: [],
+      activeVideoKey: null,
+      pendingSavePayload: null
+    };
+
+    const els = {
+      groupSelect: document.getElementById('groupSelect'),
+      roomFilter: document.getElementById('roomFilter'),
+      loadGroupBtn: document.getElementById('loadGroupBtn'),
+      loadStatus: document.getElementById('loadStatus'),
+      workspace: document.getElementById('workspace'),
+      groupHeading: document.getElementById('groupHeading'),
+      groupSubheading: document.getElementById('groupSubheading'),
+      studentCountChip: document.getElementById('studentCountChip'),
+      roomChip: document.getElementById('roomChip'),
+      presentationVideoBtn: document.getElementById('presentationVideoBtn'),
+      documentaryVideoBtn: document.getElementById('documentaryVideoBtn'),
+      videoFrame: document.getElementById('videoFrame'),
+      docGroupCriteria: document.getElementById('docGroupCriteria'),
+      presGroupCriteria: document.getElementById('presGroupCriteria'),
+      docStudentGrid: document.getElementById('docStudentGrid'),
+      presStudentGrid: document.getElementById('presStudentGrid'),
+      saveGroupBtn: document.getElementById('saveGroupBtn'),
+      saveStatus: document.getElementById('saveStatus'),
+      confirmOverlay: document.getElementById('confirmOverlay'),
+      confirmGroup: document.getElementById('confirmGroup'),
+      confirmStudents: document.getElementById('confirmStudents'),
+      confirmDocRange: document.getElementById('confirmDocRange'),
+      confirmPresRange: document.getElementById('confirmPresRange'),
+      confirmCopy: document.getElementById('confirmCopy'),
+      cancelConfirmBtn: document.getElementById('cancelConfirmBtn'),
+      confirmSaveBtn: document.getElementById('confirmSaveBtn')
+    };
+
+    init();
+
+    async function init() {
+      bindEvents();
+      await loadGroups();
+    }
+
+    function bindEvents() {
+      els.roomFilter.addEventListener('change', applyRoomFilter);
+      els.loadGroupBtn.addEventListener('click', handleLoadGroup);
+      els.saveGroupBtn.addEventListener('click', handleSaveRequest);
+      els.cancelConfirmBtn.addEventListener('click', closeConfirmModal);
+      els.confirmSaveBtn.addEventListener('click', confirmSave);
+    }
+
+    async function loadGroups() {
+      setStatus(els.loadStatus, 'Loading groups…');
+      try {
+        const response = await postToGas({ action: 'getGroups' });
+        state.groups = Array.isArray(response.groups) ? response.groups : [];
+        await buildRoomMap();
+        populateRoomFilter();
+        state.filteredGroups = [...state.groups];
+        populateGroupSelect();
+        setStatus(els.loadStatus, `Loaded ${state.groups.length} groups.`, 'success');
+      } catch (error) {
+        setStatus(els.loadStatus, error.message || 'Failed to load groups.', 'error');
+      }
+    }
+
+    async function buildRoomMap() {
+      const roomMap = {};
+      for (const group of state.groups) {
+        try {
+          const response = await postToGas({ action: 'getStudents', groupNum: group.groupNum });
+          const students = Array.isArray(response.students) ? response.students : [];
+          const room = students.map((student) => student.room).find(Boolean) || '';
+          roomMap[group.groupNum] = room;
+        } catch (error) {
+          roomMap[group.groupNum] = '';
+        }
+      }
+      state.roomMap = roomMap;
+    }
+
+    function populateRoomFilter() {
+      const rooms = [...new Set(Object.values(state.roomMap).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      els.roomFilter.innerHTML = '<option value="ALL">All Rooms</option>' + rooms.map((room) => `<option value="${escapeHtml(room)}">${escapeHtml(room)}</option>`).join('');
+    }
+
+    function applyRoomFilter() {
+      const selectedRoom = els.roomFilter.value;
+      state.filteredGroups = selectedRoom === 'ALL'
+        ? [...state.groups]
+        : state.groups.filter((group) => state.roomMap[group.groupNum] === selectedRoom);
+      populateGroupSelect();
+      els.workspace.classList.add('hidden');
+      state.selectedGroup = null;
+      state.students = [];
+      state.activeVideoKey = null;
+      setStatus(els.loadStatus, `${state.filteredGroups.length} groups available for ${selectedRoom === 'ALL' ? 'all rooms' : selectedRoom}.`, 'success');
+    }
+
+    function populateGroupSelect() {
+      const options = ['<option value="">Select a group</option>']
+        .concat(state.filteredGroups.map((group) => `<option value="${escapeHtml(group.groupNum)}">${escapeHtml(group.label || `Group ${group.groupNum}`)}</option>`));
+      els.groupSelect.innerHTML = options.join('');
+    }
+
+    async function handleLoadGroup() {
+      const groupNum = els.groupSelect.value;
+      if (!groupNum) {
+        setStatus(els.loadStatus, 'Choose a group before loading.', 'warning');
+        return;
+      }
+
+      setStatus(els.loadStatus, `Loading Group ${groupNum}…`);
+      els.loadGroupBtn.disabled = true;
+      try {
+        const group = state.groups.find((item) => item.groupNum === groupNum);
+        const response = await postToGas({ action: 'getStudents', groupNum });
+        state.selectedGroup = group;
+        state.students = Array.isArray(response.students) ? response.students : [];
+        state.activeVideoKey = null;
+        renderWorkspace();
+        setStatus(els.loadStatus, `Loaded ${state.students.length} students for Group ${groupNum}.`, 'success');
+      } catch (error) {
+        setStatus(els.loadStatus, error.message || 'Failed to load group.', 'error');
+      } finally {
+        els.loadGroupBtn.disabled = false;
+      }
+    }
+
+    function renderWorkspace() {
+      const rooms = [...new Set(state.students.map((student) => student.room).filter(Boolean))];
+      els.groupHeading.textContent = state.selectedGroup.label || `Group ${state.selectedGroup.groupNum}`;
+      els.groupSubheading.textContent = `Group ${state.selectedGroup.groupNum}`;
+      els.studentCountChip.textContent = `${state.students.length} students`;
+      els.roomChip.textContent = rooms.length ? rooms.join(', ') : 'Room not listed';
+      els.workspace.classList.remove('hidden');
+
+      renderVideoButtons();
+      renderGroupCriteria('doc', els.docGroupCriteria);
+      renderGroupCriteria('pres', els.presGroupCriteria);
+      renderStudentCards('doc', els.docStudentGrid);
+      renderStudentCards('pres', els.presStudentGrid);
+      setStatus(els.saveStatus, '');
+    }
+
+    function renderVideoButtons() {
+      setupVideoButton(els.presentationVideoBtn, 'pres', 'Presentation Video', state.selectedGroup.presLink);
+      setupVideoButton(els.documentaryVideoBtn, 'doc', 'Documentary Video', state.selectedGroup.docLink);
+      els.videoFrame.classList.add('hidden');
+      els.videoFrame.innerHTML = '';
+    }
+
+    function setupVideoButton(button, videoKey, label, url) {
+      const embedUrl = toEmbedUrl(url);
+      button.innerHTML = `<i class="ti ti-player-play"></i>${label}`;
+      button.disabled = !embedUrl;
+      button.title = embedUrl ? '' : 'No link submitted';
+      button.onclick = () => {
+        if (!embedUrl) return;
+        if (state.activeVideoKey === videoKey) {
+          state.activeVideoKey = null;
+          els.videoFrame.classList.add('hidden');
+          els.videoFrame.innerHTML = '';
+          return;
+        }
+
+        state.activeVideoKey = videoKey;
+        els.videoFrame.innerHTML = `<iframe src="${embedUrl}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen title="${label}"></iframe>`;
+        els.videoFrame.classList.remove('hidden');
+      };
+    }
+
+    function renderGroupCriteria(section, mount) {
+      const criteria = GROUP_CRITERIA[section];
+      const existing = getGroupGradeSeed();
+      mount.innerHTML = criteria.map((criterion) => {
+        const entry = existing[criterion.key] || { score: '', comment: '' };
+        return `
+          <div class="criterion-card">
+            <div class="criterion-top">
+              <h3 class="criterion-name">${criterion.label}</h3>
+              <div class="criterion-meta">Group Score · ${criterion.max} pts</div>
+            </div>
+            <div class="criterion-inputs">
+              <div class="field">
+                <label for="group-${criterion.key}-score">Score</label>
+                <input id="group-${criterion.key}-score" data-scope="group" data-key="${criterion.key}" data-kind="score" type="number" min="0" max="${criterion.max}" placeholder="0-${criterion.max}" value="${entry.score !== '' ? entry.score : ''}">
+              </div>
+              <div class="field">
+                <label for="group-${criterion.key}-comment">Comment</label>
+                <textarea id="group-${criterion.key}-comment" data-scope="group" data-key="${criterion.key}" data-kind="comment" rows="3" placeholder="Optional group comment">${escapeHtml(entry.comment || '')}</textarea>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStudentCards(section, mount) {
+      const criteria = INDIVIDUAL_CRITERIA[section];
+      mount.innerHTML = state.students.map((student, index) => {
+        const existing = student.grades || {};
+        const cards = criteria.map((criterion) => {
+          const entry = existing[criterion.key] || { score: '', comment: '' };
+          return `
+            <div class="criterion-card">
+              <div class="criterion-top">
+                <h3 class="criterion-name">${criterion.label}</h3>
+                <div class="criterion-meta">Individual · ${criterion.max} pts</div>
+              </div>
+              <div class="criterion-inputs">
+                <div class="field">
+                  <label for="student-${index}-${criterion.key}-score">Score</label>
+                  <input id="student-${index}-${criterion.key}-score" data-scope="student" data-student-index="${index}" data-key="${criterion.key}" data-kind="score" type="number" min="0" max="${criterion.max}" placeholder="0-${criterion.max}" value="${entry.score !== '' ? entry.score : ''}">
+                </div>
+                <div class="field">
+                  <label for="student-${index}-${criterion.key}-comment">Comment</label>
+                  <textarea id="student-${index}-${criterion.key}-comment" data-scope="student" data-student-index="${index}" data-key="${criterion.key}" data-kind="comment" rows="3" placeholder="Optional individual comment">${escapeHtml(entry.comment || '')}</textarea>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const badges = [];
+        if (student.skip === 'y') badges.push('<span class="badge skip"><i class="ti ti-player-skip-forward"></i>Skip</span>');
+        if (student.winner === 'y') badges.push('<span class="badge winner"><i class="ti ti-trophy"></i>Winner</span>');
+
+        return `
+          <article class="student-card ${student.skip === 'y' ? 'skip' : ''} ${student.winner === 'y' ? 'winner' : ''}">
+            <div class="student-title-row">
+              <div>
+                <h3 class="student-name">${escapeHtml(student.name)}</h3>
+                <div class="student-meta">${escapeHtml(student.email || 'No email')} · Period ${escapeHtml(student.period || '—')}</div>
+              </div>
+              <div class="badge-row">${badges.join('')}</div>
+            </div>
+            <div class="criterion-stack">${cards}</div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function getGroupGradeSeed() {
+      const firstWithGrades = state.students.find((student) => student.grades);
+      return firstWithGrades ? firstWithGrades.grades : {};
+    }
+
+    function handleSaveRequest() {
+      try {
+        const payload = collectPayload();
+        state.pendingSavePayload = payload;
+        if (payload.emptyComments > 0) {
+          setStatus(els.saveStatus, `${payload.emptyComments} comment field${payload.emptyComments === 1 ? '' : 's'} are blank. Scores are valid, and you can still save.`, 'warning');
+        } else {
+          setStatus(els.saveStatus, 'All required scores are filled and comments are complete.', 'success');
+        }
+        populateConfirmModal(payload);
+        els.confirmOverlay.classList.remove('hidden');
+      } catch (error) {
+        setStatus(els.saveStatus, error.message, 'error');
+      }
+    }
+
+    function populateConfirmModal(payload) {
+      const docScores = payload.studentScores.map((student) =>
+        Number(payload.groupScores.ideas.score) +
+        Number(payload.groupScores.quality.score) +
+        Number(payload.groupScores.narration.score) +
+        Number(payload.groupScores.videoImages.score) +
+        Number(student.studentExpectations.score)
+      );
+      const presScores = payload.studentScores.map((student) =>
+        Number(payload.groupScores.dayOfPrep.score) +
+        Number(payload.groupScores.preparation.score) +
+        Number(payload.groupScores.content.score) +
+        Number(student.vocalSkills.score) +
+        Number(student.physicalTechnique.score)
+      );
+
+      els.confirmGroup.textContent = `Group ${payload.groupNum}`;
+      els.confirmStudents.textContent = `${payload.studentScores.length}`;
+      els.confirmDocRange.textContent = `${Math.min(...docScores)} to ${Math.max(...docScores)} / 50`;
+      els.confirmPresRange.textContent = `${Math.min(...presScores)} to ${Math.max(...presScores)} / 30`;
+      els.confirmCopy.textContent = `Saving grades for Group ${payload.groupNum} — ${payload.studentScores.length} student${payload.studentScores.length === 1 ? '' : 's'}. Confirm?`;
+    }
+
+    function closeConfirmModal() {
+      els.confirmOverlay.classList.add('hidden');
+      state.pendingSavePayload = null;
+    }
+
+    async function confirmSave() {
+      if (!state.pendingSavePayload) return;
+
+      els.confirmSaveBtn.disabled = true;
+      els.cancelConfirmBtn.disabled = true;
+      els.saveGroupBtn.disabled = true;
+      setStatus(els.saveStatus, 'Saving grades…');
+
+      try {
+        const result = await postToGas(state.pendingSavePayload);
+        if (!result.success) {
+          throw new Error(result.error || 'Save failed.');
+        }
+        closeConfirmModal();
+        setStatus(els.saveStatus, `Saved ${result.rowsWritten} student rows successfully.`, 'success');
+      } catch (error) {
+        setStatus(els.saveStatus, error.message || 'Save failed.', 'error');
+      } finally {
+        els.confirmSaveBtn.disabled = false;
+        els.cancelConfirmBtn.disabled = false;
+        els.saveGroupBtn.disabled = false;
+      }
+    }
+
+    function collectPayload() {
+      if (!state.selectedGroup) {
+        throw new Error('Load a group before saving.');
+      }
+
+      const groupScores = {};
+      let emptyComments = 0;
+      for (const criterion of [...GROUP_CRITERIA.doc, ...GROUP_CRITERIA.pres]) {
+        const scoreField = document.querySelector(`[data-scope="group"][data-key="${criterion.key}"][data-kind="score"]`);
+        const commentField = document.querySelector(`[data-scope="group"][data-key="${criterion.key}"][data-kind="comment"]`);
+        const scoreValue = scoreField.value.trim();
+        if (scoreValue === '') {
+          throw new Error(`Enter a score for ${criterion.label}.`);
+        }
+        validateScore(scoreValue, criterion.max, criterion.label);
+        if (!commentField.value.trim()) emptyComments += 1;
+        groupScores[criterion.key] = {
+          score: Number(scoreValue),
+          comment: commentField.value.trim()
+        };
+      }
+
+      const studentScores = state.students.map((student, studentIndex) => {
+        const record = { name: student.name };
+        for (const criterion of [...INDIVIDUAL_CRITERIA.doc, ...INDIVIDUAL_CRITERIA.pres]) {
+          const scoreField = document.querySelector(`[data-scope="student"][data-student-index="${studentIndex}"][data-key="${criterion.key}"][data-kind="score"]`);
+          const commentField = document.querySelector(`[data-scope="student"][data-student-index="${studentIndex}"][data-key="${criterion.key}"][data-kind="comment"]`);
+          const scoreValue = scoreField.value.trim();
+          if (scoreValue === '') {
+            throw new Error(`Enter a score for ${criterion.label} on ${student.name}.`);
+          }
+          validateScore(scoreValue, criterion.max, `${criterion.label} on ${student.name}`);
+          if (!commentField.value.trim()) emptyComments += 1;
+          record[criterion.key] = {
+            score: Number(scoreValue),
+            comment: commentField.value.trim()
+          };
+        }
+        return record;
+      });
+
+      return {
+        action: 'saveGrades',
+        groupNum: state.selectedGroup.groupNum,
+        groupScores,
+        studentScores,
+        emptyComments
+      };
+    }
+
+    function validateScore(value, max, label) {
+      const score = Number(value);
+      if (Number.isNaN(score) || score < 0 || score > max) {
+        throw new Error(`${label} must be between 0 and ${max}.`);
+      }
+    }
+
+    async function postToGas(payload) {
+      if (!GAS_URL || GAS_URL === 'YOUR_GAS_DEPLOYMENT_URL') {
+        throw new Error('Replace the GAS_URL constant with your deployed Apps Script web app URL.');
+      }
+
+      const response = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: {
+          // text/plain avoids a preflight request against Apps Script web apps.
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}.`);
+      }
+
+      return response.json();
+    }
+
+    function toEmbedUrl(url) {
+      const value = String(url || '').trim();
+      if (!value) return '';
+
+      const ytMatch = value.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
+      if (ytMatch) {
+        return `https://www.youtube.com/embed/${ytMatch[1]}`;
+      }
+
+      const driveMatch = value.match(/\/d\/([A-Za-z0-9_-]+)/) || value.match(/[?&]id=([A-Za-z0-9_-]+)/);
+      if (driveMatch) {
+        return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+      }
+
+      return '';
+    }
+
+    function setStatus(element, message, tone = '') {
+      const icons = {
+        success: 'ti-check',
+        error: 'ti-alert-circle',
+        warning: 'ti-alert-triangle'
+      };
+      const icon = tone ? `<i class="ti ${icons[tone] || 'ti-info-circle'}"></i>` : (message ? '<i class="ti ti-loader-2 spin"></i>' : '');
+      element.innerHTML = message ? `${icon}<span>${escapeHtml(message)}</span>` : '';
+      element.className = `status-text ${tone}`.trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
