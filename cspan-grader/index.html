@@ -34,6 +34,7 @@
       color: var(--ink);
       background: #f7f9fb;
       min-width: 1240px;
+      padding-bottom: 48px;
     }
 
     .page {
@@ -455,6 +456,17 @@
 
     .criterion-name { font-size: 1rem; margin: 0; }
 
+    .criterion-desc {
+      margin: 6px 0 10px 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      list-style: disc;
+    }
+
+    .criterion-desc li { margin-bottom: 2px; }
+
     .criterion-meta {
       color: var(--muted);
       font-weight: 700;
@@ -577,6 +589,76 @@
     table tr:hover {
       background: #eceef0;
     }
+
+    .score-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--brand-deep);
+      color: #fff;
+      font-size: 0.82rem;
+      font-family: 'Inter', sans-serif;
+      padding: 8px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 24px;
+      align-items: center;
+      z-index: 1000;
+      border-top: 2px solid var(--accent);
+      min-height: 38px;
+    }
+
+    .score-bar.hidden { display: none; }
+
+    .score-bar-student {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .score-bar-name { font-weight: 700; }
+    .score-bar-sep { opacity: 0.4; }
+    .score-bar-total { color: #7dd3fc; font-weight: 700; }
+
+    .schoology-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .schoology-table th {
+      text-align: left;
+      padding: 6px 10px;
+      background: var(--panel);
+      border-bottom: 2px solid var(--line);
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .schoology-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .schoology-table tr:last-child td { border-bottom: none; }
+    .schoology-table td:nth-child(2) { font-weight: 700; white-space: nowrap; }
+    .schoology-table td:nth-child(3) { color: var(--muted); line-height: 1.5; }
+
+    .settings-section { margin-bottom: 14px; }
+
+    .settings-toggle-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -589,13 +671,18 @@
         </div>
         <div class="hero-actions">
           <div class="hero-chip"><i class="ti ti-movie"></i> Documentary + Presentation Rubrics</div>
-          <a id="settingsLink"
-             href="https://docs.google.com/spreadsheets/d/1c_qbf_b3WkAdFbJ0eqeB-qxb70QZPk2m9SHkr_DQrtM/edit"
+          <button id="settingsBtn"
+             title="Open settings"
+             class="btn btn-ghost settings-btn"
+             type="button">
+            <i class="ti ti-settings"></i>
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/1c_qbf_b3WkAdFbJ0eqeB-qxb70QZPk2m9SHkr_DQrtM/edit"
              target="_blank"
              rel="noopener"
              title="Open source spreadsheet"
              class="btn btn-ghost settings-btn">
-            <i class="ti ti-settings"></i>
+            <i class="ti ti-table"></i>
           </a>
         </div>
       </div>
@@ -735,32 +822,187 @@
     </div>
   </div>
 
+  <div id="settingsOverlay" class="overlay hidden">
+    <div class="modal-card" style="width:min(720px,100%);">
+      <h3><i class="ti ti-settings"></i> Settings</h3>
+
+      <div class="settings-section">
+        <label class="settings-toggle-label">
+          <span><strong>Schoology Mode</strong> — view loaded group as a gradebook table</span>
+          <input type="checkbox" id="schoologyToggle">
+        </label>
+      </div>
+
+      <div id="schoologyPanel" class="hidden" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-size:0.85rem;color:var(--muted);">
+            Sorted A–Z · Last, First · comments only shown if non-empty
+          </span>
+          <button id="copyAllBtn" class="btn btn-ghost" type="button" style="font-size:0.82rem;">
+            <i class="ti ti-copy"></i> Copy All
+          </button>
+        </div>
+        <table id="schoologyTable" class="schoology-table">
+          <thead>
+            <tr>
+              <th>A — Last, First</th>
+              <th>B — Total</th>
+              <th>C — Comments</th>
+              <th>D — Copy</th>
+            </tr>
+          </thead>
+          <tbody id="schoologyBody"></tbody>
+        </table>
+        <p id="schoologyEmpty" class="hidden" style="color:var(--muted);font-size:0.88rem;">
+          Load and grade a group first to see Schoology view.
+        </p>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px;">
+        <button id="closeSettingsBtn" class="btn btn-ghost" type="button">
+          <i class="ti ti-x"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzIIM3kWi2yBq9phAzSYCqzLhrseeKfuewQ0p_0qBDhlYx1z-UweHx-zg85eNXvPcXuzg/exec';
 
     const GROUP_CRITERIA = {
       doc: [
-        { key: 'ideas', label: 'Ideas', max: 10 },
-        { key: 'quality', label: 'Quality', max: 10 },
-        { key: 'narration', label: 'Narration', max: 10 },
-        { key: 'videoImages', label: 'Video & Images', max: 10 }
+        {
+          key: 'ideas', label: 'Ideas', max: 10,
+          description: [
+            'Topic relates to the CSPAN theme.',
+            'Balanced exploration of all viewpoints.',
+            'Clear introduction to the topic.',
+            'Story arc in the middle.',
+            'Conclusion, lasting impression, or next steps.'
+          ]
+        },
+        {
+          key: 'quality', label: 'Quality', max: 10,
+          description: [
+            'Sources (including interviews) are relevant, related, and develop the argument.',
+            'Includes sources illustrating multiple relevant viewpoints.',
+            'Interviews are impactful and clips are succinct and powerful.',
+            'Includes relevant C-SPAN video clips.',
+            'Between 5–6 minutes long.',
+            'Video submitted on time by deadline.'
+          ]
+        },
+        {
+          key: 'narration', label: 'Narration', max: 10,
+          description: [
+            'Weaves interviews and story together into a cohesive narrative.',
+            'Provides an engaging storyline.'
+          ]
+        },
+        {
+          key: 'videoImages', label: 'Video & Images', max: 10,
+          description: [
+            'Interviews are well-filmed.',
+            'Sound quality is strong, consistent, and well-balanced.',
+            'Images and video footage is either C-SPAN, taken by students, or legally authorized.',
+            'Uses diverse and relevant visuals to convey ideas.',
+            'Students on-camera are dressed appropriately.'
+          ]
+        }
       ],
       pres: [
-        { key: 'dayOfPrep', label: 'Day-of Prep & Execution', max: 10 },
-        { key: 'preparation', label: 'Preparation', max: 5 },
-        { key: 'content', label: 'Content', max: 5 }
+        {
+          key: 'dayOfPrep', label: 'Day-of Prep & Execution', max: 10,
+          description: [
+            'Student stays the entire time (unless given permission otherwise).',
+            'Students facilitate the showcase with minimal help from teachers.',
+            'All students participate and share responsibility.',
+            'Students dress and act professionally.',
+            'Student arrives to event on time.',
+            'Students complete showcase catalog on time.',
+            'Room is returned to the host teacher\'s preferred setup.',
+            'Room is clean, supplies returned, boards erased.',
+            'No complaints from the classroom teacher.',
+            'All presenters help set up and break down equally.',
+            'Video uploaded to teacher Google Drive with correct sharing permissions.',
+            'Video file correctly named per convention.'
+          ]
+        },
+        {
+          key: 'preparation', label: 'Preparation', max: 5,
+          description: [
+            'Students are within frame of the presentation recording.',
+            'Film introduction is well-planned and rehearsed.',
+            'Any notes are on index cards or printed paper (not phones).',
+            'Students make eye-contact and do not just read from notes.',
+            'Rehearsed and fluid speech, appropriate pronunciation.',
+            'Presentation within time limit.',
+            'Students speak for approximately the same amount of time.'
+          ]
+        },
+        {
+          key: 'content', label: 'Content', max: 5,
+          description: [
+            'Warm welcome for guests.',
+            'Introduces documentary and gives a preview of what audiences will see.',
+            'Explanation of how the team answered the CSPAN prompt.',
+            'Addresses major challenges and how you overcame them.',
+            'Reflects on how student skills have grown and how they apply to high school, college, and career.'
+          ]
+        }
       ]
     };
 
     const INDIVIDUAL_CRITERIA = {
       doc: [
-        { key: 'studentExpectations', label: 'Student Expectations', max: 10 }
+        {
+          key: 'studentExpectations', label: 'Student Expectations', max: 10,
+          description: [
+            'Actively participated in group work and contributed meaningful ideas.',
+            'Communicated clearly and respectfully with group members.',
+            'Demonstrated cooperation, flexibility, and willingness to support group goals.',
+            'Remained focused and used class time productively.',
+            'Completed assigned responsibilities and contributed their fair share.'
+          ]
+        }
       ],
       pres: [
-        { key: 'vocalSkills', label: 'Vocal Skills', max: 5 },
-        { key: 'physicalTechnique', label: 'Physical Technique', max: 5 }
+        {
+          key: 'vocalSkills', label: 'Individual Performance', max: 5,
+          description: [
+            'Voice intonation variety, audible volume, appropriate rate of delivery.',
+            'Appropriate pauses for emphasis.',
+            'Gestures, facial expressions, stage use.',
+            'Stand during the presentation (sitting during video is acceptable).'
+          ]
+        },
+        {
+          key: 'physicalTechnique', label: 'Individual Preparation', max: 5,
+          description: [
+            'On time and supportive throughout the event.',
+            'Submitted peer review.'
+          ]
+        }
       ]
     };
+
+    const SCORE_BAR_SECTIONS = {
+      doc: ['ideas', 'quality', 'narration', 'videoImages', 'studentExpectations'],
+      pres: ['dayOfPrep', 'preparation', 'content', 'vocalSkills', 'physicalTechnique']
+    };
+
+    const SCHOOLOGY_COMMENT_ORDER = [
+      { key: 'ideas', label: 'Ideas', scope: 'group' },
+      { key: 'quality', label: 'Quality', scope: 'group' },
+      { key: 'narration', label: 'Narration', scope: 'group' },
+      { key: 'videoImages', label: 'Video & Images', scope: 'group' },
+      { key: 'studentExpectations', label: 'Student Expectations', scope: 'student' },
+      { key: 'dayOfPrep', label: 'Day-of Prep & Execution', scope: 'group' },
+      { key: 'preparation', label: 'Preparation', scope: 'group' },
+      { key: 'content', label: 'Content', scope: 'group' },
+      { key: 'vocalSkills', label: 'Individual Performance', scope: 'student' },
+      { key: 'physicalTechnique', label: 'Individual Preparation', scope: 'student' }
+    ];
 
     const state = {
       groups: [],
@@ -780,8 +1022,10 @@
       groupSelect: document.getElementById('groupSelect'),
       roomFilter: document.getElementById('roomFilter'),
       loadGroupBtn: document.getElementById('loadGroupBtn'),
+      settingsBtn: document.getElementById('settingsBtn'),
       loadStatus: document.getElementById('loadStatus'),
       workspace: document.getElementById('workspace'),
+      scoreBar: document.getElementById('scoreBar'),
       groupHeading: document.getElementById('groupHeading'),
       groupSubheading: document.getElementById('groupSubheading'),
       studentCountChip: document.getElementById('studentCountChip'),
@@ -807,9 +1051,16 @@
       confirmCopy: document.getElementById('confirmCopy'),
       cancelConfirmBtn: document.getElementById('cancelConfirmBtn'),
       confirmSaveBtn: document.getElementById('confirmSaveBtn'),
+      settingsOverlay: document.getElementById('settingsOverlay'),
+      schoologyToggle: document.getElementById('schoologyToggle'),
+      schoologyBody: document.getElementById('schoologyBody'),
+      schoologyEmpty: document.getElementById('schoologyEmpty'),
+      copyAllBtn: document.getElementById('copyAllBtn'),
+      closeSettingsBtn: document.getElementById('closeSettingsBtn'),
       needsGradingBar: document.getElementById('needsGradingBar'),
       studentSearch: document.getElementById('studentSearch'),
-      searchDropdown: document.getElementById('searchDropdown')
+      searchDropdown: document.getElementById('searchDropdown'),
+      schoologyPanel: document.getElementById('schoologyPanel')
     };
 
     const GRADE_SCORE_HEADERS = [
@@ -836,11 +1087,16 @@
       els.roomFilter.addEventListener('change', applyRoomFilter);
       els.loadGroupBtn.addEventListener('click', handleLoadGroup);
       els.saveGroupBtn.addEventListener('click', handleSaveRequest);
+      els.settingsBtn.addEventListener('click', openSettingsModal);
       els.cancelConfirmBtn.addEventListener('click', closeConfirmModal);
       els.confirmSaveBtn.addEventListener('click', confirmSave);
+      els.closeSettingsBtn.addEventListener('click', closeSettingsModal);
+      els.schoologyToggle.addEventListener('change', handleSchoologyToggle);
+      els.copyAllBtn.addEventListener('click', copyAllSchoologyRows);
       els.groupSelect.addEventListener('change', onGroupSelectChange);
       els.tabBtnDoc.addEventListener('click', () => switchTab('doc'));
       els.tabBtnPres.addEventListener('click', () => switchTab('pres'));
+      els.workspace.addEventListener('input', handleWorkspaceInput);
 
       // Student search
       els.studentSearch.addEventListener('input', onSearchInput);
@@ -973,9 +1229,7 @@
         ? [...state.groups]
         : state.groups.filter((g) => state.roomMap[g.groupNum] === selectedRoom);
       populateGroupSelect();
-      els.workspace.classList.add('hidden');
-      state.selectedGroup = null;
-      state.students = [];
+      clearWorkspace();
       els.groupSelect.classList.remove('ungraded-selected', 'graded-selected');
       setStatus(
         els.loadStatus,
@@ -1222,6 +1476,8 @@
       renderStudentCards('doc', els.docStudentGrid);
       renderStudentCards('pres', els.presStudentGrid);
       highlightEmptyScores();
+      updateScoreBar();
+      if (els.schoologyToggle.checked) renderSchoologyTable();
       setStatus(els.saveStatus, '');
 
       // Scroll workspace into view
@@ -1259,6 +1515,9 @@
               <h3 class="criterion-name">${criterion.label}</h3>
               <div class="criterion-meta">Group Score · ${criterion.max} pts</div>
             </div>
+            <ul class="criterion-desc">
+              ${criterion.description.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}
+            </ul>
             <div class="criterion-inputs">
               <div class="field">
                 <label for="group-${criterion.key}-score">Score</label>
@@ -1287,6 +1546,9 @@
                 <h3 class="criterion-name">${criterion.label}</h3>
                 <div class="criterion-meta">Individual · ${criterion.max} pts</div>
               </div>
+              <ul class="criterion-desc">
+                ${criterion.description.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}
+              </ul>
               <div class="criterion-inputs">
                 <div class="field">
                   <label for="student-${index}-${criterion.key}-score">Score</label>
@@ -1331,6 +1593,11 @@
         syncHighlight();
         input.oninput = syncHighlight;
       });
+    }
+
+    function handleWorkspaceInput() {
+      updateScoreBar();
+      if (els.schoologyToggle.checked) renderSchoologyTable();
     }
 
     function getGroupGradeSeed() {
@@ -1411,6 +1678,8 @@
         renderStudentCards('doc', els.docStudentGrid);
         renderStudentCards('pres', els.presStudentGrid);
         highlightEmptyScores();
+        updateScoreBar();
+        if (els.schoologyToggle.checked) renderSchoologyTable();
         // Update workspace graded chip
         els.gradedChip.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success)"></i><span style="color:var(--success);font-weight:700;">Graded</span>`;
         // Update group select options
@@ -1468,6 +1737,199 @@
       }
     }
 
+    function clearWorkspace() {
+      els.workspace.classList.add('hidden');
+      state.selectedGroup = null;
+      state.students = [];
+      els.scoreBar.classList.add('hidden');
+      els.scoreBar.innerHTML = '';
+      if (els.schoologyToggle.checked) renderSchoologyTable();
+    }
+
+    function getFieldValue(selector) {
+      const field = document.querySelector(selector);
+      return field ? field.value.trim() : '';
+    }
+
+    function readScoreValue(scope, key, max, studentIndex = null) {
+      const studentSelector = studentIndex === null ? '' : `[data-student-index="${studentIndex}"]`;
+      const rawValue = getFieldValue(`[data-scope="${scope}"]${studentSelector}[data-key="${key}"][data-kind="score"]`);
+      if (rawValue === '') return null;
+      const numericValue = Number(rawValue);
+      if (Number.isNaN(numericValue)) return null;
+      return Math.max(0, Math.min(max, numericValue));
+    }
+
+    function readCommentValue(scope, key, studentIndex = null) {
+      const studentSelector = studentIndex === null ? '' : `[data-student-index="${studentIndex}"]`;
+      return getFieldValue(`[data-scope="${scope}"]${studentSelector}[data-key="${key}"][data-kind="comment"]`);
+    }
+
+    function sumKeys(values, keys) {
+      if (keys.some((key) => values[key] === null)) return null;
+      return keys.reduce((sum, key) => sum + values[key], 0);
+    }
+
+    function formatScoreBarValue(value, max) {
+      return value === null ? `—/${max}` : `${value}/${max}`;
+    }
+
+    function getStudentLastName(name) {
+      const normalized = String(name || '').trim();
+      if (!normalized) return 'Student';
+      if (normalized.includes(',')) return normalized.split(',')[0].trim() || normalized;
+      const parts = normalized.split(/\s+/);
+      return parts[parts.length - 1] || normalized;
+    }
+
+    function updateScoreBar() {
+      if (!state.selectedGroup || !state.students.length) {
+        els.scoreBar.classList.add('hidden');
+        els.scoreBar.innerHTML = '';
+        return;
+      }
+
+      const summary = state.students.map((student, studentIndex) => {
+        const values = {};
+        for (const criterion of [...GROUP_CRITERIA.doc, ...GROUP_CRITERIA.pres]) {
+          values[criterion.key] = readScoreValue('group', criterion.key, criterion.max);
+        }
+        for (const criterion of [...INDIVIDUAL_CRITERIA.doc, ...INDIVIDUAL_CRITERIA.pres]) {
+          values[criterion.key] = readScoreValue('student', criterion.key, criterion.max, studentIndex);
+        }
+
+        const docSub = sumKeys(values, SCORE_BAR_SECTIONS.doc);
+        const presSub = sumKeys(values, SCORE_BAR_SECTIONS.pres);
+        const total = docSub === null || presSub === null ? null : docSub + presSub;
+
+        return `
+          <span class="score-bar-student">
+            <span class="score-bar-name">${escapeHtml(getStudentLastName(student.name))}</span>
+            <span class="score-bar-sep">·</span>
+            <span>Doc ${formatScoreBarValue(docSub, 50)}</span>
+            <span class="score-bar-sep">·</span>
+            <span>Pres ${formatScoreBarValue(presSub, 30)}</span>
+            <span class="score-bar-sep">·</span>
+            <span class="score-bar-total">${formatScoreBarValue(total, 80)}</span>
+          </span>
+        `;
+      }).join('');
+
+      els.scoreBar.innerHTML = `
+        <span class="chip">Group ${escapeHtml(state.selectedGroup.groupNum)} ·</span>
+        ${summary}
+      `;
+      els.scoreBar.classList.remove('hidden');
+    }
+
+    function buildSchoologyRows() {
+      if (!state.selectedGroup || !state.students.length) return [];
+
+      const groupScores = {};
+      const groupComments = {};
+      for (const criterion of [...GROUP_CRITERIA.doc, ...GROUP_CRITERIA.pres]) {
+        groupScores[criterion.key] = readScoreValue('group', criterion.key, criterion.max);
+        groupComments[criterion.key] = readCommentValue('group', criterion.key);
+      }
+
+      return state.students
+        .map((student, studentIndex) => {
+          const studentScores = {};
+          const studentComments = {};
+
+          for (const criterion of [...INDIVIDUAL_CRITERIA.doc, ...INDIVIDUAL_CRITERIA.pres]) {
+            studentScores[criterion.key] = readScoreValue('student', criterion.key, criterion.max, studentIndex);
+            studentComments[criterion.key] = readCommentValue('student', criterion.key, studentIndex);
+          }
+
+          const total = [
+            ...Object.values(groupScores),
+            ...Object.values(studentScores)
+          ].reduce((sum, value) => sum + (value === null ? 0 : value), 0);
+
+          const comments = SCHOOLOGY_COMMENT_ORDER
+            .map(({ key, label, scope }) => {
+              const text = scope === 'group' ? groupComments[key] : studentComments[key];
+              return text ? `${label}: ${text}` : '';
+            })
+            .filter(Boolean)
+            .join(' | ');
+
+          return {
+            displayName: String(student.name || '').trim(),
+            total,
+            comments
+          };
+        })
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }
+
+    function renderSchoologyTable() {
+      const rows = buildSchoologyRows();
+      const hasGroup = !!state.selectedGroup;
+
+      els.schoologyBody.innerHTML = '';
+      els.schoologyEmpty.classList.toggle('hidden', hasGroup);
+
+      if (!hasGroup) {
+        return;
+      }
+
+      els.schoologyBody.innerHTML = rows.map((row, index) => `
+        <tr>
+          <td>${escapeHtml(row.displayName)}</td>
+          <td>${escapeHtml(String(row.total))}</td>
+          <td>${escapeHtml(row.comments)}</td>
+          <td>
+            <button class="btn btn-ghost" type="button" data-copy-row="${index}" style="font-size:0.78rem;padding:6px 10px;">
+              <i class="ti ti-copy"></i> Copy
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      els.schoologyBody.querySelectorAll('[data-copy-row]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const row = rows[Number(button.dataset.copyRow)];
+          await copyToClipboard(`${row.displayName}\t${row.total}\t${row.comments}`, 'Copied one Schoology row.');
+        });
+      });
+    }
+
+    function handleSchoologyToggle() {
+      els.schoologyPanel.classList.toggle('hidden', !els.schoologyToggle.checked);
+      if (els.schoologyToggle.checked) renderSchoologyTable();
+    }
+
+    function openSettingsModal() {
+      els.settingsOverlay.classList.remove('hidden');
+      els.schoologyPanel.classList.toggle('hidden', !els.schoologyToggle.checked);
+      if (els.schoologyToggle.checked) renderSchoologyTable();
+    }
+
+    function closeSettingsModal() {
+      els.settingsOverlay.classList.add('hidden');
+    }
+
+    async function copyAllSchoologyRows() {
+      const rows = buildSchoologyRows();
+      if (!rows.length) {
+        setStatus(els.saveStatus, 'Load a group before copying Schoology rows.', 'warning');
+        return;
+      }
+      const tsv = rows.map((row) => `${row.displayName}\t${row.total}\t${row.comments}`).join('\n');
+      await copyToClipboard(tsv, `Copied ${rows.length} Schoology row${rows.length === 1 ? '' : 's'}.`);
+    }
+
+    async function copyToClipboard(text, successMessage) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus(els.saveStatus, successMessage, 'success');
+      } catch (error) {
+        setStatus(els.saveStatus, 'Clipboard copy failed in this browser.', 'error');
+      }
+    }
+
     async function postToGas(payload) {
       if (!GAS_URL || GAS_URL === 'YOUR_GAS_DEPLOYMENT_URL') {
         throw new Error('Replace the GAS_URL constant with your deployed Apps Script web app URL.');
@@ -1510,5 +1972,6 @@
         .replace(/'/g, '&#39;');
     }
   </script>
+  <div id="scoreBar" class="score-bar hidden"></div>
 </body>
 </html>
