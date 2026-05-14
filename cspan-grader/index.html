@@ -1021,6 +1021,7 @@
 
       const response = await fetch(GAS_URL, {
         method: 'POST',
+        redirect: 'follow',
         headers: {
           // text/plain avoids a preflight request against Apps Script web apps.
           'Content-Type': 'text/plain;charset=utf-8'
