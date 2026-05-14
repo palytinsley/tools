@@ -26,9 +26,7 @@
       --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -46,11 +44,7 @@
       padding: 28px 0 40px;
     }
 
-    .hero,
-    .panel,
-    .student-card,
-    .video-frame,
-    .modal-card {
+    .hero, .panel, .student-card, .video-frame, .modal-card {
       background: var(--panel-strong);
       border: 1px solid rgba(203, 216, 214, 0.9);
       border-radius: var(--radius);
@@ -75,10 +69,7 @@
       pointer-events: none;
     }
 
-    h1,
-    h2,
-    h3,
-    .criterion-name {
+    h1, h2, h3, .criterion-name {
       font-family: 'Arvo', serif;
     }
 
@@ -119,9 +110,10 @@
       margin-bottom: 18px;
     }
 
+    /* ── Control grid: Group | Room | Search | Button ── */
     .control-grid {
       display: grid;
-      grid-template-columns: 2fr 1.2fr auto;
+      grid-template-columns: 1.6fr 1fr 1.6fr auto;
       gap: 14px;
       align-items: end;
     }
@@ -136,16 +128,11 @@
       letter-spacing: 0.05em;
     }
 
-    select,
-    input[type="number"],
-    textarea,
-    button {
+    select, input[type="number"], input[type="text"], textarea, button {
       font: inherit;
     }
 
-    select,
-    input[type="number"],
-    textarea {
+    select, input[type="number"], input[type="text"], textarea {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -155,9 +142,7 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    select:focus,
-    input[type="number"]:focus,
-    textarea:focus {
+    select:focus, input[type="number"]:focus, input[type="text"]:focus, textarea:focus {
       outline: none;
       border-color: var(--brand);
       box-shadow: 0 0 0 4px rgba(31, 122, 110, 0.12);
@@ -168,6 +153,116 @@
       resize: vertical;
     }
 
+    /* ── Student search combobox ── */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap .ti-search {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    #studentSearch {
+      padding-left: 38px;
+    }
+
+    #studentSearch:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(20, 58, 55, 0.14);
+      z-index: 50;
+      overflow: hidden;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .search-dropdown.hidden { display: none; }
+
+    .search-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.1s ease;
+      gap: 12px;
+    }
+
+    .search-option:hover, .search-option.focused {
+      background: #f2f7f6;
+    }
+
+    .search-option-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .search-option-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Ungraded indicator pills ── */
+    .needs-grading-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .needs-grading-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .needs-grading-chip.pending {
+      background: rgba(180, 84, 42, 0.12);
+      color: var(--warn);
+      border: 1px solid rgba(180, 84, 42, 0.22);
+    }
+
+    .needs-grading-chip.all-done {
+      background: rgba(32, 119, 93, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(32, 119, 93, 0.2);
+    }
+
+    /* Dot badge in group select options — achieved via option text prefix */
+    /* We style the select itself to give a visual cue for the currently selected group */
+    #groupSelect.ungraded-selected {
+      border-color: var(--warn);
+      box-shadow: 0 0 0 3px rgba(180, 84, 42, 0.12);
+    }
+
+    #groupSelect.graded-selected {
+      border-color: var(--success);
+      box-shadow: 0 0 0 3px rgba(32, 119, 93, 0.1);
+    }
+
+    /* ── Everything else unchanged ── */
     .btn {
       border: none;
       border-radius: 14px;
@@ -181,14 +276,8 @@
       transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
     }
 
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:disabled { cursor: not-allowed; opacity: 0.55; }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--brand), var(--brand-deep));
@@ -208,22 +297,14 @@
       border: 1px solid var(--line);
     }
 
-    .status-row,
-    .group-meta,
-    .video-button-row,
-    .section-head,
-    .student-title-row,
-    .modal-actions {
+    .status-row, .group-meta, .video-button-row, .section-head, .student-title-row, .modal-actions {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
     }
 
-    .status-row {
-      margin-top: 12px;
-      min-height: 24px;
-    }
+    .status-row { margin-top: 12px; min-height: 24px; }
 
     .status-text {
       font-size: 0.95rem;
@@ -233,21 +314,11 @@
       align-items: center;
     }
 
-    .status-text.error {
-      color: var(--danger);
-    }
+    .status-text.error { color: var(--danger); }
+    .status-text.success { color: var(--success); }
+    .status-text.warning { color: var(--warn); }
 
-    .status-text.success {
-      color: var(--success);
-    }
-
-    .status-text.warning {
-      color: var(--warn);
-    }
-
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .group-meta {
       margin-bottom: 18px;
@@ -277,10 +348,7 @@
       margin-bottom: 14px;
     }
 
-    .video-frame {
-      padding: 14px;
-      overflow: hidden;
-    }
+    .video-frame { padding: 14px; overflow: hidden; }
 
     .video-frame iframe {
       width: 100%;
@@ -290,25 +358,11 @@
       background: #d7e3e1;
     }
 
-    .rubric-section + .rubric-section {
-      margin-top: 22px;
-    }
+    .rubric-section + .rubric-section { margin-top: 22px; }
 
-    .section-head {
-      margin-bottom: 14px;
-      align-items: flex-end;
-    }
-
-    .section-head h2 {
-      margin: 0;
-      font-size: 1.35rem;
-    }
-
-    .section-head p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
+    .section-head { margin-bottom: 14px; align-items: flex-end; }
+    .section-head h2 { margin: 0; font-size: 1.35rem; }
+    .section-head p { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
 
     .group-criteria-grid {
       display: grid;
@@ -332,10 +386,7 @@
       align-items: baseline;
     }
 
-    .criterion-name {
-      font-size: 1rem;
-      margin: 0;
-    }
+    .criterion-name { font-size: 1rem; margin: 0; }
 
     .criterion-meta {
       color: var(--muted);
@@ -369,25 +420,12 @@
       background: linear-gradient(180deg, rgba(220, 167, 63, 0.12), rgba(255, 255, 255, 0.96) 22%);
     }
 
-    .student-card.skip {
-      opacity: 0.68;
-    }
+    .student-card.skip { opacity: 0.68; }
 
-    .student-name {
-      margin: 0;
-      font-size: 1.12rem;
-    }
+    .student-name { margin: 0; font-size: 1.12rem; }
+    .student-meta { color: var(--muted); font-size: 0.92rem; }
 
-    .student-meta {
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-
-    .badge-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .badge {
       display: inline-flex;
@@ -401,21 +439,16 @@
       text-transform: uppercase;
     }
 
-    .badge.skip {
-      background: rgba(158, 52, 52, 0.12);
-      color: var(--danger);
+    .badge.skip { background: rgba(158, 52, 52, 0.12); color: var(--danger); }
+    .badge.winner { background: rgba(220, 167, 63, 0.18); color: #80590a; }
+
+    /* Ungraded badge on student cards */
+    .badge.ungraded {
+      background: rgba(180, 84, 42, 0.12);
+      color: var(--warn);
     }
 
-    .badge.winner {
-      background: rgba(220, 167, 63, 0.18);
-      color: #80590a;
-    }
-
-    .criterion-stack {
-      display: grid;
-      gap: 12px;
-      margin-top: 14px;
-    }
+    .criterion-stack { display: grid; gap: 12px; margin-top: 14px; }
 
     .save-bar {
       margin-top: 24px;
@@ -426,11 +459,7 @@
       padding-top: 10px;
     }
 
-    .save-copy {
-      color: var(--muted);
-      max-width: 820px;
-      line-height: 1.45;
-    }
+    .save-copy { color: var(--muted); max-width: 820px; line-height: 1.45; }
 
     .overlay {
       position: fixed;
@@ -443,21 +472,9 @@
       z-index: 20;
     }
 
-    .modal-card {
-      width: min(560px, 100%);
-      padding: 24px;
-    }
-
-    .modal-card h3 {
-      margin: 0 0 10px;
-      font-size: 1.4rem;
-    }
-
-    .modal-card p {
-      margin: 0 0 18px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
+    .modal-card { width: min(560px, 100%); padding: 24px; }
+    .modal-card h3 { margin: 0 0 10px; font-size: 1.4rem; }
+    .modal-card p { margin: 0 0 18px; color: var(--muted); line-height: 1.5; }
 
     .spin {
       display: inline-block;
@@ -465,12 +482,8 @@
     }
 
     @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .modal-summary {
@@ -512,16 +525,34 @@
           </select>
         </div>
         <div class="field">
-          <label for="roomFilter">Room Filter</label>
+          <label for="roomFilter">Room</label>
           <select id="roomFilter">
             <option value="ALL">All Rooms</option>
           </select>
+        </div>
+        <div class="field">
+          <label for="studentSearch">Find Student</label>
+          <div class="search-wrap">
+            <i class="ti ti-search"></i>
+            <input
+              type="text"
+              id="studentSearch"
+              placeholder="Type a student name…"
+              autocomplete="off"
+              disabled
+            >
+            <div id="searchDropdown" class="search-dropdown hidden"></div>
+          </div>
         </div>
         <button id="loadGroupBtn" class="btn btn-primary" type="button">
           <i class="ti ti-folder-open"></i>
           Load Group
         </button>
       </div>
+
+      <!-- Ungraded summary bar -->
+      <div id="needsGradingBar" class="needs-grading-bar hidden"></div>
+
       <div class="status-row">
         <div id="loadStatus" class="status-text"></div>
       </div>
@@ -537,6 +568,7 @@
           <div class="meta-chips">
             <div class="chip"><i class="ti ti-users-group"></i><span id="studentCountChip">0 students</span></div>
             <div class="chip"><i class="ti ti-home"></i><span id="roomChip">Room</span></div>
+            <div id="gradedChip" class="chip hidden"></div>
           </div>
         </div>
         <div class="video-button-row">
@@ -612,7 +644,6 @@
 
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzIIM3kWi2yBq9phAzSYCqzLhrseeKfuewQ0p_0qBDhlYx1z-UweHx-zg85eNXvPcXuzg/exec';
-    // Replace with deployed GAS web app URL after deploying Code.gs
 
     const GROUP_CRITERIA = {
       doc: [
@@ -645,7 +676,10 @@
       selectedGroup: null,
       students: [],
       activeVideoKey: null,
-      pendingSavePayload: null
+      pendingSavePayload: null,
+      gradedGroupNums: new Set(),      // groups with at least one grade row
+      allStudents: [],                 // flat list: { name, groupNum, room } for search
+      searchFocusedIndex: -1
     };
 
     const els = {
@@ -658,6 +692,7 @@
       groupSubheading: document.getElementById('groupSubheading'),
       studentCountChip: document.getElementById('studentCountChip'),
       roomChip: document.getElementById('roomChip'),
+      gradedChip: document.getElementById('gradedChip'),
       presentationVideoBtn: document.getElementById('presentationVideoBtn'),
       documentaryVideoBtn: document.getElementById('documentaryVideoBtn'),
       videoFrame: document.getElementById('videoFrame'),
@@ -674,17 +709,17 @@
       confirmPresRange: document.getElementById('confirmPresRange'),
       confirmCopy: document.getElementById('confirmCopy'),
       cancelConfirmBtn: document.getElementById('cancelConfirmBtn'),
-      confirmSaveBtn: document.getElementById('confirmSaveBtn')
+      confirmSaveBtn: document.getElementById('confirmSaveBtn'),
+      needsGradingBar: document.getElementById('needsGradingBar'),
+      studentSearch: document.getElementById('studentSearch'),
+      searchDropdown: document.getElementById('searchDropdown')
     };
 
     init();
 
     async function init() {
       bindEvents();
-      const loadGroupsStart = performance.now();
-      console.log('[CSPAN Grader] Starting loadGroups');
       await loadGroups();
-      console.log('[CSPAN Grader] Finished loadGroups in ' + Math.round(performance.now() - loadGroupsStart) + 'ms');
     }
 
     function bindEvents() {
@@ -693,52 +728,272 @@
       els.saveGroupBtn.addEventListener('click', handleSaveRequest);
       els.cancelConfirmBtn.addEventListener('click', closeConfirmModal);
       els.confirmSaveBtn.addEventListener('click', confirmSave);
+      els.groupSelect.addEventListener('change', onGroupSelectChange);
+
+      // Student search
+      els.studentSearch.addEventListener('input', onSearchInput);
+      els.studentSearch.addEventListener('focus', onSearchFocus);
+      els.studentSearch.addEventListener('keydown', onSearchKeydown);
+      els.studentSearch.addEventListener('blur', () => {
+        // slight delay so click on option fires first
+        setTimeout(() => els.searchDropdown.classList.add('hidden'), 150);
+      });
     }
 
+    // ── Group select border hint ──
+    function onGroupSelectChange() {
+      const groupNum = els.groupSelect.value;
+      els.groupSelect.classList.remove('ungraded-selected', 'graded-selected');
+      if (!groupNum) return;
+      if (state.gradedGroupNums.has(groupNum)) {
+        els.groupSelect.classList.add('graded-selected');
+      } else {
+        els.groupSelect.classList.add('ungraded-selected');
+      }
+    }
+
+    // ── Load groups + grades summary in parallel ──
     async function loadGroups() {
       setStatus(els.loadStatus, 'Loading groups…');
       try {
-        const response = await postToGas({ action: 'getGroups' });
-        state.groups = Array.isArray(response.groups) ? response.groups : [];
+        const [groupsResp, gradesResp] = await Promise.all([
+          postToGas({ action: 'getGroups' }),
+          postToGas({ action: 'getAllGrades' })
+        ]);
+
+        state.groups = Array.isArray(groupsResp.groups) ? groupsResp.groups : [];
+
+        // Build graded set from existing grade rows
+        const gradeRows = Array.isArray(gradesResp.grades) ? gradesResp.grades : [];
+        state.gradedGroupNums = new Set(
+          gradeRows
+            .map((row) => String(row['Group#'] || '').trim())
+            .filter(Boolean)
+        );
+
         buildRoomMap();
         populateRoomFilter();
         state.filteredGroups = [...state.groups];
         populateGroupSelect();
-        setStatus(els.loadStatus, `Loaded ${state.groups.length} groups.`, 'success');
+        buildAllStudentsList();
+        enableSearch();
+        renderNeedsGradingBar();
+
+        const ungradedCount = state.groups.filter((g) => !state.gradedGroupNums.has(g.groupNum)).length;
+        setStatus(
+          els.loadStatus,
+          `Loaded ${state.groups.length} groups — ${ungradedCount} ungraded.`,
+          ungradedCount > 0 ? 'warning' : 'success'
+        );
       } catch (error) {
         setStatus(els.loadStatus, error.message || 'Failed to load groups.', 'error');
       }
     }
 
     function buildRoomMap() {
-      state.roomMap = state.groups.reduce((roomMap, group) => {
-        roomMap[group.groupNum] = String(group.room || '').trim();
-        return roomMap;
+      state.roomMap = state.groups.reduce((map, group) => {
+        map[group.groupNum] = String(group.room || '').trim();
+        return map;
       }, {});
     }
 
     function populateRoomFilter() {
       const rooms = [...new Set(Object.values(state.roomMap).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-      els.roomFilter.innerHTML = '<option value="ALL">All Rooms</option>' + rooms.map((room) => `<option value="${escapeHtml(room)}">${escapeHtml(room)}</option>`).join('');
+      els.roomFilter.innerHTML = '<option value="ALL">All Rooms</option>' +
+        rooms.map((r) => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
     }
 
     function applyRoomFilter() {
       const selectedRoom = els.roomFilter.value;
       state.filteredGroups = selectedRoom === 'ALL'
         ? [...state.groups]
-        : state.groups.filter((group) => state.roomMap[group.groupNum] === selectedRoom);
+        : state.groups.filter((g) => state.roomMap[g.groupNum] === selectedRoom);
       populateGroupSelect();
       els.workspace.classList.add('hidden');
       state.selectedGroup = null;
       state.students = [];
       state.activeVideoKey = null;
-      setStatus(els.loadStatus, `${state.filteredGroups.length} groups available for ${selectedRoom === 'ALL' ? 'all rooms' : selectedRoom}.`, 'success');
+      els.groupSelect.classList.remove('ungraded-selected', 'graded-selected');
+      setStatus(
+        els.loadStatus,
+        `${state.filteredGroups.length} groups in ${selectedRoom === 'ALL' ? 'all rooms' : selectedRoom}.`,
+        'success'
+      );
     }
 
+    // ── Group select: Group N · Room X  |  ● ungraded  or  ✓ graded ──
     function populateGroupSelect() {
-      const options = ['<option value="">Select a group</option>']
-        .concat(state.filteredGroups.map((group) => `<option value="${escapeHtml(group.groupNum)}">${escapeHtml(group.label || `Group ${group.groupNum}`)}</option>`));
+      const options = ['<option value="">Select a group</option>'].concat(
+        state.filteredGroups.map((group) => {
+          const room = state.roomMap[group.groupNum] || '';
+          const isGraded = state.gradedGroupNums.has(group.groupNum);
+          const indicator = isGraded ? '✓' : '●';
+          const label = `${indicator} Group ${group.groupNum}${room ? ' · ' + room : ''}`;
+          return `<option value="${escapeHtml(group.groupNum)}">${escapeHtml(label)}</option>`;
+        })
+      );
       els.groupSelect.innerHTML = options.join('');
+    }
+
+    // ── Ungraded summary bar below controls ──
+    function renderNeedsGradingBar() {
+      const ungradedGroups = state.filteredGroups.filter((g) => !state.gradedGroupNums.has(g.groupNum));
+      const totalFiltered = state.filteredGroups.length;
+
+      if (!totalFiltered) {
+        els.needsGradingBar.classList.add('hidden');
+        return;
+      }
+
+      els.needsGradingBar.classList.remove('hidden');
+
+      if (ungradedGroups.length === 0) {
+        els.needsGradingBar.innerHTML = `
+          <div class="needs-grading-chip all-done">
+            <i class="ti ti-circle-check"></i>
+            All ${totalFiltered} groups graded
+          </div>`;
+      } else {
+        const ungradedList = ungradedGroups.slice(0, 8).map((g) => `Group ${g.groupNum}`).join(', ');
+        const overflow = ungradedGroups.length > 8 ? ` +${ungradedGroups.length - 8} more` : '';
+        els.needsGradingBar.innerHTML = `
+          <div class="needs-grading-chip pending">
+            <i class="ti ti-alert-circle"></i>
+            ${ungradedGroups.length} of ${totalFiltered} groups still need grading
+          </div>
+          <span style="font-size:0.85rem;color:var(--muted);">${escapeHtml(ungradedList + overflow)}</span>`;
+      }
+    }
+
+    // ── Build flat student list for search ──
+    // We can't load every group's students upfront (too many requests).
+    // Instead we construct the list from the groups data (groupNum + room) and
+    // any students already loaded. After each group load we augment the list.
+    function buildAllStudentsList() {
+      // Reset — we'll populate incrementally as groups are loaded.
+      // On init, seed with groupNum/room only; names come from getStudents calls.
+      // The search will show group-level entries until a group has been loaded.
+      state.allStudents = state.groups.map((g) => ({
+        name: null,
+        groupNum: g.groupNum,
+        room: state.roomMap[g.groupNum] || ''
+      }));
+    }
+
+    function augmentStudentList(groupNum, students) {
+      // Remove placeholder for this group
+      state.allStudents = state.allStudents.filter((s) => s.groupNum !== groupNum || s.name !== null);
+      // Add real student entries
+      students.forEach((s) => {
+        if (!state.allStudents.find((e) => e.groupNum === groupNum && e.name === s.name)) {
+          state.allStudents.push({
+            name: s.name,
+            groupNum,
+            room: s.room || state.roomMap[groupNum] || '',
+            isGraded: !!s.grades
+          });
+        }
+      });
+    }
+
+    function enableSearch() {
+      els.studentSearch.disabled = false;
+    }
+
+    // ── Search handlers ──
+    function onSearchInput() {
+      const query = els.studentSearch.value.trim().toLowerCase();
+      if (!query) {
+        els.searchDropdown.classList.add('hidden');
+        return;
+      }
+      renderSearchDropdown(query);
+    }
+
+    function onSearchFocus() {
+      const query = els.studentSearch.value.trim().toLowerCase();
+      if (query) renderSearchDropdown(query);
+    }
+
+    function renderSearchDropdown(query) {
+      const matches = state.allStudents
+        .filter((s) => s.name && s.name.toLowerCase().includes(query))
+        .slice(0, 20);
+
+      if (!matches.length) {
+        els.searchDropdown.innerHTML = `<div class="search-option" style="color:var(--muted);font-size:0.9rem;">No students found</div>`;
+        els.searchDropdown.classList.remove('hidden');
+        return;
+      }
+
+      els.searchDropdown.innerHTML = matches.map((s, i) => {
+        const graded = state.gradedGroupNums.has(s.groupNum);
+        const gradedDot = graded
+          ? `<span style="color:var(--success);font-weight:700;" title="Graded">✓</span>`
+          : `<span style="color:var(--warn);font-weight:700;" title="Ungraded">●</span>`;
+        return `
+          <div class="search-option" data-group="${escapeHtml(s.groupNum)}" data-index="${i}">
+            <span class="search-option-name">${escapeHtml(s.name)}</span>
+            <span class="search-option-meta">${gradedDot} Group ${escapeHtml(s.groupNum)}${s.room ? ' · ' + escapeHtml(s.room) : ''}</span>
+          </div>`;
+      }).join('');
+
+      els.searchDropdown.querySelectorAll('.search-option').forEach((el) => {
+        el.addEventListener('mousedown', () => {
+          const groupNum = el.dataset.group;
+          selectGroupFromSearch(groupNum);
+        });
+      });
+
+      state.searchFocusedIndex = -1;
+      els.searchDropdown.classList.remove('hidden');
+    }
+
+    function onSearchKeydown(e) {
+      const options = els.searchDropdown.querySelectorAll('.search-option[data-group]');
+      if (!options.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        state.searchFocusedIndex = Math.min(state.searchFocusedIndex + 1, options.length - 1);
+        highlightSearchOption(options);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        state.searchFocusedIndex = Math.max(state.searchFocusedIndex - 1, 0);
+        highlightSearchOption(options);
+      } else if (e.key === 'Enter') {
+        if (state.searchFocusedIndex >= 0 && options[state.searchFocusedIndex]) {
+          const groupNum = options[state.searchFocusedIndex].dataset.group;
+          selectGroupFromSearch(groupNum);
+        }
+      } else if (e.key === 'Escape') {
+        els.searchDropdown.classList.add('hidden');
+      }
+    }
+
+    function highlightSearchOption(options) {
+      options.forEach((el, i) => {
+        el.classList.toggle('focused', i === state.searchFocusedIndex);
+      });
+    }
+
+    function selectGroupFromSearch(groupNum) {
+      // Set room filter to ALL so group is visible
+      els.roomFilter.value = 'ALL';
+      state.filteredGroups = [...state.groups];
+      populateGroupSelect();
+      renderNeedsGradingBar();
+
+      // Select the group in the dropdown
+      els.groupSelect.value = groupNum;
+      onGroupSelectChange();
+
+      // Clear the search
+      els.studentSearch.value = '';
+      els.searchDropdown.classList.add('hidden');
+
+      // Auto-load the group
+      handleLoadGroup();
     }
 
     async function handleLoadGroup() {
@@ -756,6 +1011,10 @@
         state.selectedGroup = group;
         state.students = Array.isArray(response.students) ? response.students : [];
         state.activeVideoKey = null;
+
+        // Augment student search list with real names
+        augmentStudentList(groupNum, state.students);
+
         renderWorkspace();
         setStatus(els.loadStatus, `Loaded ${state.students.length} students for Group ${groupNum}.`, 'success');
       } catch (error) {
@@ -766,11 +1025,25 @@
     }
 
     function renderWorkspace() {
-      const rooms = [...new Set(state.students.map((student) => student.room).filter(Boolean))];
-      els.groupHeading.textContent = state.selectedGroup.label || `Group ${state.selectedGroup.groupNum}`;
-      els.groupSubheading.textContent = `Group ${state.selectedGroup.groupNum}`;
+      const rooms = [...new Set(state.students.map((s) => s.room).filter(Boolean))];
+      const isGraded = state.gradedGroupNums.has(state.selectedGroup.groupNum);
+      const ungradedStudents = state.students.filter((s) => !s.grades);
+
+      els.groupHeading.textContent = `Group ${state.selectedGroup.groupNum}`;
+      els.groupSubheading.textContent = state.selectedGroup.label || `Group ${state.selectedGroup.groupNum}`;
       els.studentCountChip.textContent = `${state.students.length} students`;
       els.roomChip.textContent = rooms.length ? rooms.join(', ') : 'Room not listed';
+
+      // Graded status chip in workspace header
+      els.gradedChip.classList.remove('hidden');
+      if (isGraded && ungradedStudents.length === 0) {
+        els.gradedChip.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success)"></i><span style="color:var(--success);font-weight:700;">Graded</span>`;
+      } else if (ungradedStudents.length > 0) {
+        els.gradedChip.innerHTML = `<i class="ti ti-alert-circle" style="color:var(--warn)"></i><span style="color:var(--warn);font-weight:700;">${ungradedStudents.length} student${ungradedStudents.length === 1 ? '' : 's'} ungraded</span>`;
+      } else {
+        els.gradedChip.classList.add('hidden');
+      }
+
       els.workspace.classList.remove('hidden');
 
       renderVideoButtons();
@@ -779,6 +1052,9 @@
       renderStudentCards('doc', els.docStudentGrid);
       renderStudentCards('pres', els.presStudentGrid);
       setStatus(els.saveStatus, '');
+
+      // Scroll workspace into view
+      els.workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function renderVideoButtons() {
@@ -801,7 +1077,6 @@
           els.videoFrame.innerHTML = '';
           return;
         }
-
         state.activeVideoKey = videoKey;
         els.videoFrame.innerHTML = `<iframe src="${embedUrl}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen title="${label}"></iframe>`;
         els.videoFrame.classList.remove('hidden');
@@ -838,6 +1113,7 @@
       const criteria = INDIVIDUAL_CRITERIA[section];
       mount.innerHTML = state.students.map((student, index) => {
         const existing = student.grades || {};
+        const isStudentGraded = !!student.grades;
         const cards = criteria.map((criterion) => {
           const entry = existing[criterion.key] || { score: '', comment: '' };
           return `
@@ -861,6 +1137,7 @@
         }).join('');
 
         const badges = [];
+        if (!isStudentGraded) badges.push('<span class="badge ungraded"><i class="ti ti-clock"></i>Needs Grading</span>');
         if (student.skip === 'y') badges.push('<span class="badge skip"><i class="ti ti-player-skip-forward"></i>Skip</span>');
         if (student.winner === 'y') badges.push('<span class="badge winner"><i class="ti ti-trophy"></i>Winner</span>');
 
@@ -880,7 +1157,7 @@
     }
 
     function getGroupGradeSeed() {
-      const firstWithGrades = state.students.find((student) => student.grades);
+      const firstWithGrades = state.students.find((s) => s.grades);
       return firstWithGrades ? firstWithGrades.grades : {};
     }
 
@@ -938,9 +1215,22 @@
 
       try {
         const result = await postToGas(state.pendingSavePayload);
-        if (!result.success) {
-          throw new Error(result.error || 'Save failed.');
-        }
+        if (!result.success) throw new Error(result.error || 'Save failed.');
+
+        // Mark this group as graded
+        state.gradedGroupNums.add(state.pendingSavePayload.groupNum);
+        // Update student objects so badges refresh
+        state.students.forEach((s) => { s.grades = s.grades || {}; });
+        // Re-render student cards to remove "Needs Grading" badges
+        renderStudentCards('doc', els.docStudentGrid);
+        renderStudentCards('pres', els.presStudentGrid);
+        // Update workspace graded chip
+        els.gradedChip.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success)"></i><span style="color:var(--success);font-weight:700;">Graded</span>`;
+        // Update group select options
+        populateGroupSelect();
+        onGroupSelectChange();
+        renderNeedsGradingBar();
+
         closeConfirmModal();
         setStatus(els.saveStatus, `Saved ${result.rowsWritten} student rows successfully.`, 'success');
       } catch (error) {
@@ -953,9 +1243,7 @@
     }
 
     function collectPayload() {
-      if (!state.selectedGroup) {
-        throw new Error('Load a group before saving.');
-      }
+      if (!state.selectedGroup) throw new Error('Load a group before saving.');
 
       const groupScores = {};
       let emptyComments = 0;
@@ -963,15 +1251,10 @@
         const scoreField = document.querySelector(`[data-scope="group"][data-key="${criterion.key}"][data-kind="score"]`);
         const commentField = document.querySelector(`[data-scope="group"][data-key="${criterion.key}"][data-kind="comment"]`);
         const scoreValue = scoreField.value.trim();
-        if (scoreValue === '') {
-          throw new Error(`Enter a score for ${criterion.label}.`);
-        }
+        if (scoreValue === '') throw new Error(`Enter a score for ${criterion.label}.`);
         validateScore(scoreValue, criterion.max, criterion.label);
         if (!commentField.value.trim()) emptyComments += 1;
-        groupScores[criterion.key] = {
-          score: Number(scoreValue),
-          comment: commentField.value.trim()
-        };
+        groupScores[criterion.key] = { score: Number(scoreValue), comment: commentField.value.trim() };
       }
 
       const studentScores = state.students.map((student, studentIndex) => {
@@ -980,26 +1263,15 @@
           const scoreField = document.querySelector(`[data-scope="student"][data-student-index="${studentIndex}"][data-key="${criterion.key}"][data-kind="score"]`);
           const commentField = document.querySelector(`[data-scope="student"][data-student-index="${studentIndex}"][data-key="${criterion.key}"][data-kind="comment"]`);
           const scoreValue = scoreField.value.trim();
-          if (scoreValue === '') {
-            throw new Error(`Enter a score for ${criterion.label} on ${student.name}.`);
-          }
+          if (scoreValue === '') throw new Error(`Enter a score for ${criterion.label} on ${student.name}.`);
           validateScore(scoreValue, criterion.max, `${criterion.label} on ${student.name}`);
           if (!commentField.value.trim()) emptyComments += 1;
-          record[criterion.key] = {
-            score: Number(scoreValue),
-            comment: commentField.value.trim()
-          };
+          record[criterion.key] = { score: Number(scoreValue), comment: commentField.value.trim() };
         }
         return record;
       });
 
-      return {
-        action: 'saveGrades',
-        groupNum: state.selectedGroup.groupNum,
-        groupScores,
-        studentScores,
-        emptyComments
-      };
+      return { action: 'saveGrades', groupNum: state.selectedGroup.groupNum, groupScores, studentScores, emptyComments };
     }
 
     function validateScore(value, max, label) {
@@ -1013,48 +1285,31 @@
       if (!GAS_URL || GAS_URL === 'YOUR_GAS_DEPLOYMENT_URL') {
         throw new Error('Replace the GAS_URL constant with your deployed Apps Script web app URL.');
       }
-
       const response = await fetch(GAS_URL, {
         method: 'POST',
         redirect: 'follow',
-        headers: {
-          // text/plain avoids a preflight request against Apps Script web apps.
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}.`);
-      }
-
+      if (!response.ok) throw new Error(`Request failed with status ${response.status}.`);
       return response.json();
     }
 
     function toEmbedUrl(url) {
       const value = String(url || '').trim();
       if (!value) return '';
-
       const ytMatch = value.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
-      if (ytMatch) {
-        return `https://www.youtube.com/embed/${ytMatch[1]}`;
-      }
-
+      if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
       const driveMatch = value.match(/\/d\/([A-Za-z0-9_-]+)/) || value.match(/[?&]id=([A-Za-z0-9_-]+)/);
-      if (driveMatch) {
-        return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-      }
-
+      if (driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
       return '';
     }
 
     function setStatus(element, message, tone = '') {
-      const icons = {
-        success: 'ti-check',
-        error: 'ti-alert-circle',
-        warning: 'ti-alert-triangle'
-      };
-      const icon = tone ? `<i class="ti ${icons[tone] || 'ti-info-circle'}"></i>` : (message ? '<i class="ti ti-loader-2 spin"></i>' : '');
+      const icons = { success: 'ti-check', error: 'ti-alert-circle', warning: 'ti-alert-triangle' };
+      const icon = tone
+        ? `<i class="ti ${icons[tone] || 'ti-info-circle'}"></i>`
+        : (message ? '<i class="ti ti-loader-2 spin"></i>' : '');
       element.innerHTML = message ? `${icon}<span>${escapeHtml(message)}</span>` : '';
       element.className = `status-text ${tone}`.trim();
     }
